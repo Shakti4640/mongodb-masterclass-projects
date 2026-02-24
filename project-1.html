@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <title>Project 1: Your First Database & Collection — MongoDB Masterclass</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.75;
+            color: #1a202c;
+            background-color: #f7fafc;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+            padding: 48px 52px;
+        }
+        
+        .content { max-width: 950px; margin: 0 auto; color: #1a202c; }
+        .content h1 {
+            color: #1a202c; margin: 32px 0 20px;
+            padding-bottom: 12px;
+            border-bottom: 4px solid #10b981;
+            font-size: 2.1em;
+            font-weight: 700;
+        }
+        .content h2 {
+            color: #1a202c; margin: 28px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #34d399;
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+        .content h3 { color: #1a202c; margin: 22px 0 12px; font-size: 1.3em; font-weight: 600; }
+        .content h4 { color: #2d3748; margin: 18px 0 10px; font-size: 1.1em; font-weight: 600; }
+        .content p  { margin-bottom: 16px; line-height: 1.8; color: #1a202c; }
+        .content ul, .content ol { margin: 12px 0 18px 30px; color: #1a202c; }
+        .content li { margin-bottom: 8px; line-height: 1.75; color: #1a202c; }
+        .content hr { border: none; border-top: 2px solid #e2e8f0; margin: 26px 0; }
+        .content pre {
+            background: #f7fafc !important;
+            border: 1px solid #cbd5e0 !important;
+            border-left: 4px solid #10b981 !important;
+            padding: 18px !important; overflow-x: auto; margin: 18px 0; border-radius: 6px;
+            font-family: 'Consolas','Monaco','Courier New',monospace !important;
+            font-size: 0.9em !important;
+        }
+        .content pre:not([style*="color"]) { color: #1a202c !important; }
+        .content code {
+            font-family: 'Consolas','Monaco','Courier New',monospace !important;
+            font-size: 0.88em !important;
+        }
+        .content code:not(pre code) {
+            background: #d1fae5 !important;
+            color: #1a202c !important;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .content pre code { background: transparent !important; padding: 0; }
+        .content table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .content th {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white; padding: 12px 16px; text-align: left;
+            font-weight: 600;
+        }
+        .content td { padding: 11px 16px; border: 1px solid #e2e8f0; color: #1a202c; }
+        .content tr:nth-child(even) td { background: #ecfdf5; }
+        .content blockquote {
+            border-left: 4px solid #10b981; background: #ecfdf5;
+            padding: 14px 20px; margin: 18px 0; border-radius: 0 6px 6px 0;
+            color: #1a202c;
+        }
+        .content strong { color: #1a202c; font-weight: 600; }
+        .px-2 { padding: 0; }
+        .chat-message { background: transparent; padding: 0; margin: 0; }
+
+        /* Bottom nav bar only */
+        .nav-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 0;
+            margin-top: 50px;
+            border-top: 3px solid #34d399;
+        }
+        .nav-button {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 26px;
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white !important; text-decoration: none;
+            border-radius: 8px; font-weight: 600; font-size: 0.95em;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.35);
+        }
+        .nav-button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(16,185,129,0.5); }
+        .nav-button.disabled { background: #cbd5e1; box-shadow: none; pointer-events: none; }
+        .nav-button.home {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            box-shadow: 0 2px 8px rgba(5,150,105,0.35);
+        }
+        .nav-button.home:hover { box-shadow: 0 4px 14px rgba(5,150,105,0.5); }
+        .page-info { color: #718096; font-size: 0.9em; text-align: center; }
+
+        /* Progress bar */
+        #progress-track {
+            position: fixed; top: 20px; right: 20px;
+            width: 10px; height: 150px;
+            background: rgba(16,185,129,0.2);
+            border: 2px solid #10b981;
+            border-radius: 6px; overflow: hidden; z-index: 1000;
+        }
+        #progress-fill {
+            width: 100%;
+            background: linear-gradient(180deg, #10b981, #059669);
+            height: 0%;
+            transition: height 0.15s ease;
+        }
+        #progress-pct {
+            position: fixed; top: 0px; right: 16px;
+            color: #059669; font-size: 14px; font-weight: bold;
+            z-index: 1001;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+            line-height: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="chat-message" data-index="3">
+<div class="px-2"><h1>PROJECT 1: Your First Database &amp; Collection</h1>
+<h2>Problem: Store a List of Products for an E-Commerce Platform</h2>
+<hr>
+<h2>🎯 THE HYPOTHETICAL PROBLEM</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>SCENARIO:
+</span>    You just joined a startup building an e-commerce platform
+    Your first task: set up a database to store products
+    Each product has: name, price, category, stock quantity, created date
+
+    You have done this 100 times in Redshift
+    Now you must do it in MongoDB for the first time
+
+    The question isn't "how" — it's "why does everything feel different?"</code></pre></div>
+<hr>
+<h2>🔴 REDSHIFT MINDSET — How You Would Solve This</h2>
+<h3>Step 1: Plan the Schema FIRST (Redshift demands this)</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>YOUR INSTINCT (trained by Redshift):
+</span>    → Think about ALL the columns you'll ever need
+    → Choose data types carefully (storage = cost)
+    → Think about distribution key (how will data be spread?)
+    → Think about sort key (what will queries filter on?)
+    → Think about encoding/compression per column
+    → THEN create the table
+    → THEN insert data
+    
+YOU CANNOT INSERT DATA WITHOUT A TABLE DEFINITION IN REDSHIFT
+This is the fundamental rule you've internalized</code></pre></div>
+<h3>Step 2: Create the Cluster (if not already running)</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>IN REDSHIFT:
+</span>    → Go to AWS Console → Amazon Redshift → Create Cluster
+    → Choose node type (dc2.large, ra3.xlarge, etc.)
+    → Choose number of nodes
+    → Set master username/password
+    → Configure VPC, subnet, security group
+    → Wait 5-10 minutes for cluster provisioning
+    → Connect via Query Editor v2 or psql
+
+    COST STARTS IMMEDIATELY — even with zero data
+    Cluster runs 24/7 unless paused (serverless is different)</code></pre></div>
+<h3>Step 3: Create the Database and Table</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- REDSHIFT: Create database</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">CREATE</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">DATABASE</span><span> ecommerce</span><span class="token" style="color: rgb(57, 58, 52);">;</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- Connect to ecommerce database</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- (In psql: \c ecommerce)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- REDSHIFT: Create schema (namespace)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">CREATE</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">SCHEMA</span><span> store</span><span class="token" style="color: rgb(57, 58, 52);">;</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- REDSHIFT: Create table with FULL schema definition upfront</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">CREATE</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">TABLE</span><span> store</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>products </span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>
+</span><span>    product_id      </span><span class="token" style="color: rgb(0, 0, 255);">BIGINT</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">IDENTITY</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(54, 172, 170);">1</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span class="token" style="color: rgb(54, 172, 170);">1</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- auto-increment PK</span><span>
+</span><span>    name            </span><span class="token" style="color: rgb(0, 0, 255);">VARCHAR</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(54, 172, 170);">255</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">NOT</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">NULL</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>     </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- must define max length</span><span>
+</span><span>    price           </span><span class="token" style="color: rgb(0, 0, 255);">DECIMAL</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(54, 172, 170);">10</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span class="token" style="color: rgb(54, 172, 170);">2</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">NOT</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">NULL</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- must define precision</span><span>
+</span><span>    category        </span><span class="token" style="color: rgb(0, 0, 255);">VARCHAR</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(54, 172, 170);">100</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    stock_qty       </span><span class="token" style="color: rgb(0, 0, 255);">INTEGER</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">DEFAULT</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">0</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    created_at      </span><span class="token" style="color: rgb(0, 0, 255);">TIMESTAMP</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">DEFAULT</span><span> GETDATE</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span>    
+<span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- Redshift-specific: compression encoding</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- Redshift auto-assigns, but you CAN specify</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 0, 255);">PRIMARY</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">KEY</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>product_id</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>DISTSTYLE </span><span class="token" style="color: rgb(0, 0, 255);">KEY</span><span>                    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- how rows are distributed across nodes</span><span>
+</span><span>DISTKEY </span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>category</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>               </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- distribute by category for co-located joins</span><span>
+</span><span>SORTKEY </span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>created_at</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>             </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">-- sort by date for range scan efficiency</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">;</span></code></pre></div>
+
+
+<h3>Step 4: What Redshift Did Behind the Scenes</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>WHEN YOU RAN CREATE TABLE:
+</span>    → Redshift LOCKED the schema definition permanently
+    → Every column's type, size, encoding = FIXED
+    → Distribution key decided how data spreads across compute slices
+    → Sort key decided physical sort order on disk
+    → Zone maps will be auto-created per 1MB block per column
+    → Columnar storage: each column stored SEPARATELY on disk
+    → If you need a new column later: ALTER TABLE ADD COLUMN
+    → If you need to change DISTKEY/SORTKEY: recreate entire table
+    
+    THE TABLE EXISTS — empty but fully structured — BEFORE any data arrives</code></pre></div>
+<hr>
+<h2>🟢 MONGODB MINDSET — How This Same Problem Is Approached</h2>
+<h3>Step 1: There Is No "Plan Schema First" Step</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>YOUR NEW REALITY:
+</span>    → You do NOT define columns (fields) upfront
+    → You do NOT choose data types in advance
+    → You do NOT create the collection (table) explicitly
+    → You just START INSERTING DATA
+    → The database creates itself when you first reference it
+    → The collection creates itself when you first insert into it
+    
+    THIS WILL FEEL WRONG — your Redshift brain will scream
+    "But where's the schema? Where's the DDL? Where's the contract?"
+    
+    MongoDB's answer: "The document IS the schema"</code></pre></div>
+<h3>Step 2: Connect to MongoDB (No Cluster Provisioning Needed for Local)</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>TWO WAYS TO START:
+</span>
+OPTION A — Local MongoDB (for learning)
+    → Install MongoDB Community Server
+    → Start mongod process (the database server)
+    → Connect via mongosh (the shell — equivalent to psql)
+
+OPTION B — MongoDB Atlas (cloud — equivalent to Redshift on AWS)
+    → Go to cloud.mongodb.com → Create Free Cluster
+    → Choose cloud provider (AWS/GCP/Azure)
+    → Choose region
+    → FREE TIER EXISTS (M0) — 512MB storage — no cost
+    → Get connection string
+    → Connect via mongosh or Compass (GUI)</code></pre></div>
+<h3>Step 3: "Create" Database and Collection</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// MONGODB SHELL (mongosh):</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// "Switch" to a database — this CREATES it if it doesn't exist</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// But it doesn't actually exist on disk until you insert data</span><span>
+</span>use ecommerce
+
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// That's it. No CREATE DATABASE command.</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// No schema definition. No table creation.</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// The database "ecommerce" is now your context</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// but NOTHING has been written to disk yet.</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// To "create" a collection, you just... insert into it:</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">insertOne</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Wireless Mouse"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">29.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">150</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">created_at</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">new</span><span> </span><span class="token" style="color: rgb(43, 145, 175);">Date</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span></code></pre></div>
+<h3>Step 4: What MongoDB Did Behind the Scenes</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>WHEN YOU RAN insertOne():
+</span>    1. Database "ecommerce" was CREATED (directory on disk)
+    2. Collection "products" was CREATED (files on disk)
+    3. The document was assigned an _id field (ObjectId) automatically
+    4. Document was written as BSON (Binary JSON) to WiredTiger storage
+    5. A default index on _id was auto-created
+    6. Journal entry was written (for crash recovery)
+    
+    NO SCHEMA WAS LOCKED
+    → Next document can have COMPLETELY different fields
+    → No ALTER TABLE ever needed
+    → No column type enforcement (unless you add validation later)
+    
+    THE COLLECTION CAME INTO EXISTENCE BECAUSE DATA ARRIVED
+    — opposite of Redshift where structure exists before data</code></pre></div>
+<hr>
+<h2>📊 SIDE-BY-SIDE COMPARISON TABLE</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>┌────────────────────┬──────────────────────────┬──────────────────────────────┐
+</span>│ ASPECT              │ REDSHIFT                  │ MONGODB                       │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Create Database     │ CREATE DATABASE name;      │ use name (implicit creation)  │
+│                     │ Explicit DDL required      │ Created on first write        │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Create Table/       │ CREATE TABLE with full     │ No explicit creation needed   │
+│ Collection          │ schema definition          │ Created on first insert       │
+│                     │ Columns, types, keys       │ Or: db.createCollection()     │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Schema              │ ENFORCED at all times      │ FLEXIBLE by default           │
+│                     │ Every row same structure    │ Each document can differ      │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Primary Key         │ Define explicitly          │ _id auto-generated (ObjectId) │
+│                     │ IDENTITY or manual         │ Or provide your own _id       │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Data Format         │ Columnar (each column      │ BSON (Binary JSON)            │
+│                     │ stored separately)         │ Entire document stored as unit│
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Storage Engine      │ Custom columnar engine     │ WiredTiger (B-tree + LSM)     │
+│                     │ with zone maps             │ with document-level locking   │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Default Index       │ None (sort key ≠ index)    │ Automatic index on _id        │
+│                     │ Zone maps auto-created     │ Additional indexes manual     │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Query Language      │ SQL (PostgreSQL dialect)   │ MongoDB Query Language (MQL)  │
+│                     │ SELECT * FROM products     │ db.products.find({})          │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Connection Tool     │ psql / Query Editor v2     │ mongosh / Compass (GUI)       │
+│                     │ JDBC/ODBC drivers          │ Native drivers (pymongo etc)  │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Cost (getting       │ Minimum ~$0.25/hr          │ Free tier (Atlas M0)          │
+│ started)            │ (dc2.large on-demand)      │ Or free local install         │
+├────────────────────┼──────────────────────────┼──────────────────────────────┤
+│ Time to first       │ ~10-15 minutes             │ ~30 seconds (local)           │
+│ data insert         │ (cluster provision + DDL)  │ ~3 minutes (Atlas free tier)  │
+└────────────────────┴──────────────────────────┴──────────────────────────────┘</code></pre></div>
+<hr>
+<h2>🧩 HOW TO APPROACH IT IN MONGODB</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>THINKING FRAMEWORK (rewire your brain):
+</span>
+IN REDSHIFT YOU THINK:
+    1. What columns will I need?         → FIRST
+    2. What types are they?              → SECOND
+    3. How will I distribute the data?   → THIRD
+    4. How will I sort the data?         → FOURTH
+    5. Create the table                  → FIFTH
+    6. Load the data                     → LAST
+
+IN MONGODB YOU THINK:
+    1. What does ONE product look like?  → FIRST (think in documents)
+    2. How will the application ACCESS   → SECOND (read/write patterns)
+       this product?
+    3. Insert the document               → THIRD (collection auto-created)
+    4. Add indexes LATER based on        → FOURTH (optimize after you know
+       actual query patterns                  actual access patterns)
+
+THE ORDER IS REVERSED:
+    Redshift: Structure → Data → Queries
+    MongoDB:  Data → Queries → Structure (indexes/sharding later)</code></pre></div>
+<hr>
+<h2>🔧 HOW CAN WE SOLVE IT IN MONGODB</h2>
+<h3>Method 1: Implicit Collection Creation (Most Common)</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// mongosh — The MongoDB Shell</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Step 1: Connect</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Local:</span><span>
+</span>mongosh
+
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Atlas:</span><span>
+</span><span>mongosh </span><span class="token" style="color: rgb(163, 21, 21);">"mongodb+srv://cluster0.xxxxx.mongodb.net/"</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">--</span><span>apiVersion </span><span class="token" style="color: rgb(54, 172, 170);">1</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">--</span><span>username myUser
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Step 2: Switch to database (creates it implicitly)</span><span>
+</span>use ecommerce
+
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Step 3: Insert a product (creates collection implicitly)</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">insertOne</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Wireless Mouse"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">29.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">150</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">created_at</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">new</span><span> </span><span class="token" style="color: rgb(43, 145, 175);">Date</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// OUTPUT:</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// {</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   acknowledged: true,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   insertedId: ObjectId('665a1b2c3d4e5f6a7b8c9d0e')</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// }</span></code></pre></div>
+<h3>Method 2: Explicit Collection Creation (When You Need Options)</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// mongosh — When you want to set options at creation time</span><span>
+</span>
+use ecommerce
+
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Explicitly create collection with options</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">createCollection</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"products"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Optional: capped collection (fixed-size, auto-delete oldest)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// capped: true,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// size: 1048576,  // 1MB max</span><span>
+</span>    
+<span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Optional: schema validation (we'll cover deeply in Project 7)</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">validator</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">$jsonSchema</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>            </span><span class="token literal-property" style="color: rgb(255, 0, 0);">bsonType</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"object"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>            </span><span class="token literal-property" style="color: rgb(255, 0, 0);">required</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"price"</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>            </span><span class="token literal-property" style="color: rgb(255, 0, 0);">properties</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>                </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span>      </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span> </span><span class="token literal-property" style="color: rgb(255, 0, 0);">bsonType</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"string"</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>                </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span>     </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span> </span><span class="token literal-property" style="color: rgb(255, 0, 0);">bsonType</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"double"</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>                </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span>  </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span> </span><span class="token literal-property" style="color: rgb(255, 0, 0);">bsonType</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"string"</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>                </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span> </span><span class="token literal-property" style="color: rgb(255, 0, 0);">bsonType</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"int"</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span>
+</span><span>            </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span>
+</span><span>        </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">validationLevel</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"moderate"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// apply to inserts and updates</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">validationAction</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"warn"</span><span>        </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// warn but don't reject (vs "error")</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span></code></pre></div>
+<h3>Method 3: Python (pymongo) — The Application Way</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># pymongo — Python MongoDB Driver</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Equivalent to using psycopg2 or SQLAlchemy for Redshift</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 0, 255);">from</span><span> pymongo </span><span class="token" style="color: rgb(0, 0, 255);">import</span><span> MongoClient
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">from</span><span> datetime </span><span class="token" style="color: rgb(0, 0, 255);">import</span><span> datetime
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── CONNECTION ───────────────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Local MongoDB</span><span>
+</span><span>client </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> MongoClient</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"mongodb://localhost:27017/"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Atlas (cloud)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># client = MongoClient("mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/")</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── "CREATE" DATABASE ───────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># This does NOT create it on disk yet — just a reference</span><span>
+</span><span>db </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> client</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(163, 21, 21);">"ecommerce"</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── "CREATE" COLLECTION ─────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># This does NOT create it on disk yet — just a reference</span><span>
+</span><span>products </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> db</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(163, 21, 21);">"products"</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── INSERT FIRST DOCUMENT (NOW everything gets created) ─────</span><span>
+</span><span>result </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>insert_one</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Wireless Mouse"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"price"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">29.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"category"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"stock_qty"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">150</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"created_at"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> datetime</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>now</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"Inserted document ID: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">result</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">inserted_id</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Output: Inserted document ID: 665a1b2c3d4e5f6a7b8c9d0e</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── VERIFY ──────────────────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># List all databases (ecommerce now exists)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>client</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>list_database_names</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Output: ['admin', 'config', 'local', 'ecommerce']</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># List all collections in ecommerce</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>list_collection_names</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Output: ['products']</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Retrieve the document we just inserted</span><span>
+</span><span>product </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>find_one</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>product</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Output:</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># {</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     '_id': ObjectId('665a1b2c3d4e5f6a7b8c9d0e'),</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     'name': 'Wireless Mouse',</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     'price': 29.99,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     'category': 'Electronics',</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     'stock_qty': 150,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     'created_at': datetime(2024, 5, 31, 14, 30, 22)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># }</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── EQUIVALENT REDSHIFT SQL (for reference) ─────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># CREATE DATABASE ecommerce;</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># CREATE TABLE store.products (</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     product_id   BIGINT IDENTITY(1,1) PRIMARY KEY,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     name         VARCHAR(255) NOT NULL,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     price        DECIMAL(10,2) NOT NULL,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     category     VARCHAR(100),</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     stock_qty    INTEGER DEFAULT 0,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     created_at   TIMESTAMP DEFAULT GETDATE()</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># )</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># DISTSTYLE KEY DISTKEY(category) SORTKEY(created_at);</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># INSERT INTO store.products (name, price, category, stock_qty)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># VALUES ('Wireless Mouse', 29.99, 'Electronics', 150);</span></code></pre></div>
+<hr>
+<h2>⚡ WHAT COULD BE DONE (MongoDB-Specific Optimizations)</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>AT THIS STAGE (Project 1), optimizations are minimal
+</span>But here's what MongoDB ALLOWS that Redshift doesn't:
+
+1. CUSTOM _id
+   → Instead of auto-generated ObjectId, use your own:
+     { _id: "PROD-001", name: "Wireless Mouse", ... }
+   → Like choosing your own primary key vs IDENTITY column
+   → Useful when you have a natural unique key (SKU, product code)
+
+2. WRITE CONCERN ON INSERT
+   → db.products.insertOne({...}, { writeConcern: { w: 1 } })
+   → Control durability guarantee per operation
+   → Redshift has no equivalent — every write is fully durable (slower)
+
+3. ORDERED vs UNORDERED INSERTS
+   → insertMany([...], { ordered: false })
+   → Unordered: continues on error (like Redshift COPY MAXERROR)
+   → Ordered: stops at first error (default)</code></pre></div>
+<hr>
+<h2>✅ WHAT SHOULD DO (Best Practices vs Redshift Habits to Unlearn)</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>SHOULD DO:
+</span>    ✅ Think about your DOCUMENT SHAPE before inserting
+       → Not schema columns — but what ONE entity looks like
+       → "What does a product look like as a JSON object?"
+    
+    ✅ Use meaningful database names
+       → use ecommerce  (not use db1)
+    
+    ✅ Use plural collection names by convention
+       → db.products (not db.product)
+       → Like Redshift table naming conventions
+    
+    ✅ Let MongoDB generate _id (ObjectId) unless you have a strong reason
+       → ObjectId contains timestamp — free created_at information
+       → ObjectId is globally unique — no sequence collision across shards
+    
+    ✅ Use the pymongo driver for application code
+       → mongosh for exploration (like psql for Redshift)
+       → pymongo for production code (like psycopg2/SQLAlchemy for Redshift)
+    
+    ✅ Use Compass (GUI) alongside mongosh
+       → Visual document exploration
+       → Equivalent to Redshift Query Editor v2 but for documents
+
+REDSHIFT HABITS TO UNLEARN:
+    🔄 Stop thinking "I must define ALL columns before inserting"
+    🔄 Stop thinking "I need to choose distribution and sort keys now"
+    🔄 Stop thinking "schema migration = ALTER TABLE"
+    🔄 Stop thinking "every row must have the same fields"</code></pre></div>
+<hr>
+<h2>❌ WHAT SHOULD NOT DO (Anti-Patterns)</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>DO NOT:
+</span>    ❌ Create empty databases/collections "just to have structure"
+       → They don't persist until data is written
+       → Waste of time — opposite of Redshift where empty tables are normal
+    
+    ❌ Try to enforce column types at insert time manually
+       → "if type(price) != float: raise Error" in your app code
+       → USE schema validation instead (Project 7) if you need type safety
+    
+    ❌ Store everything as strings
+       → price: "29.99" ← WRONG (can't do math, can't sort numerically)
+       → price: 29.99   ← CORRECT (stored as BSON double)
+       → Redshift enforces types so you never think about this
+       → MongoDB lets you store ANYTHING — you must be disciplined
+    
+    ❌ Use SQL-like naming with dots in collection names
+       → db["store.products"] ← technically works but DON'T
+       → Use separate databases instead: use store → db.products
+    
+    ❌ Create hundreds of small collections (one per entity subtype)
+       → Coming from Redshift: one table per entity = normal
+       → In MongoDB: polymorphic documents in ONE collection = better
+       → We'll cover this deeply in Project 18
+    
+    ❌ Assume "no schema" means "no design"
+       → BIGGEST TRAP for Redshift developers
+       → MongoDB requires MORE design thinking, not less
+       → You're designing DOCUMENTS, not TABLES
+       → The design just lives in your application, not in DDL</code></pre></div>
+<hr>
+<h2>📍 WHEN TO USE MONGODB OVER REDSHIFT</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>FOR THIS SPECIFIC PROBLEM (product catalog):
+</span>
+USE MONGODB WHEN:
+    → Products have VARYING attributes
+      (electronics: voltage, watts | clothing: size, color, fabric)
+    → You need sub-millisecond single-product lookups
+    → You need real-time inventory updates (high write concurrency)
+    → Product schema changes frequently (new attributes added weekly)
+    → You need to serve an API directly from the database
+    → Your team iterates fast (startup, agile, rapid prototyping)</code></pre></div>
+<hr>
+<h2>📍 WHEN TO STICK WITH REDSHIFT INSTEAD</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>FOR THIS SPECIFIC PROBLEM (product catalog):
+</span>
+USE REDSHIFT WHEN:
+    → All products have IDENTICAL structure (same columns)
+    → Primary use case is ANALYTICAL queries
+      ("average price per category per quarter across 5 years")
+    → You need to JOIN products with 10+ other tables for reports
+    → You're loading data in batches (nightly ETL)
+    → Your queries scan millions of products for aggregation
+    → You need SQL compatibility for BI tools (Tableau, Looker)</code></pre></div>
+<hr>
+<h2>📍 WHEN TO USE BOTH TOGETHER</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>THE REAL-WORLD ANSWER (most common architecture):
+</span>
+┌──────────────────┐         ┌──────────────────┐
+│   MONGODB         │  ETL/   │   REDSHIFT         │
+│   (Operational)   │ ──────→ │   (Analytical)     │
+│                   │ Nightly │                     │
+│ • Serve product   │  Sync   │ • Revenue reports   │
+│   pages (fast)    │         │ • Category analysis │
+│ • Cart operations │         │ • Inventory trends  │
+│ • Real-time stock │         │ • Price optimization│
+│ • Flexible schema │         │ • JOIN with sales   │
+└──────────────────┘         └──────────────────┘
+
+MongoDB serves the APPLICATION → fast reads/writes, flexible
+Redshift serves the ANALYSTS → complex queries, historical trends
+Data flows from MongoDB → (transform) → Redshift nightly</code></pre></div>
+<hr>
+<h2>⚙️ HOW IT ONLY WORKS INTERNALLY</h2>
+<h3>MongoDB Internals — WiredTiger Storage</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>WHEN YOU RAN: db.products.insertOne({ name: "Wireless Mouse", ... })
+</span>
+HERE'S WHAT HAPPENED INSIDE:
+
+1. BSON ENCODING
+   → Your JSON document was converted to BSON (Binary JSON)
+   → BSON is a binary format — more compact, typed, fast to parse
+   → JSON:  { "price": 29.99 }          ← text, no type info
+   → BSON:  \x10 price \x00 \x29.99...  ← binary, typed as double
+   
+   WHY BSON AND NOT JSON?
+   → JSON is text → slow to parse, no native types
+   → BSON adds: Date, Decimal128, ObjectId, Binary, int32/int64
+   → BSON allows O(1) field traversal (length-prefixed)
+
+2. WIREDTIGER STORAGE ENGINE
+   → WiredTiger is MongoDB's default storage engine (since 3.2)
+   → It uses a B-tree structure for document storage
+   → Documents stored in PAGES (like Redshift blocks but different)
+   
+   CRITICAL DIFFERENCE:
+   → Redshift: each COLUMN stored in separate 1MB block
+     → "price" values for ALL rows stored together → great for SUM(price)
+   → MongoDB: each DOCUMENT stored as complete unit
+     → ALL fields of ONE product stored together → great for "get product by id"
+
+3. JOURNAL (Write-Ahead Log)
+   → BEFORE writing to data files, write to journal
+   → Journal = WAL (Write-Ahead Log) — same concept as Redshift's commit log
+   → Crash recovery: replay journal to recover uncommitted writes
+   → Journal checkpoints every 60 seconds (configurable)
+
+4. _id INDEX AUTO-CREATION
+   → A unique B-tree index on _id was automatically created
+   → This is like having an automatic PRIMARY KEY index
+   → Redshift primary keys are NOT enforced (informational only!)
+   → MongoDB _id index IS enforced — duplicates rejected
+
+5. MEMORY (WiredTiger Cache)
+   → Document loaded into WiredTiger internal cache
+   → Default: 50% of (RAM - 1GB)
+   → Documents are stored in cache in UNCOMPRESSED format
+   → On disk: compressed (snappy/zlib/zstd)
+   → Redshift equivalent: query result cache + block cache
+
+PHYSICAL FILES CREATED:
+    /data/db/
+    ├── ecommerce/              ← database directory
+    │   ├── collection-xxx.wt   ← products collection data
+    │   └── index-xxx.wt        ← _id index data
+    ├── journal/                ← write-ahead log
+    │   └── WiredTigerLog.xxx
+    └── WiredTiger.wt           ← metadata</code></pre></div>
+<h3>Redshift Internals — For Comparison</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>WHEN YOU RAN: INSERT INTO store.products VALUES (...)
+</span>
+HERE'S WHAT HAPPENED INSIDE REDSHIFT:
+
+1. LEADER NODE received the query
+   → Parsed SQL, created execution plan
+   → Determined which compute slice owns this row (based on DISTKEY)
+
+2. COMPUTE SLICE received the row
+   → Split the row into COLUMNS
+   → Each column value stored in separate 1MB block
+   → name → block_name_001.col
+   → price → block_price_001.col
+   → category → block_category_001.col
+   
+3. ZONE MAPS updated
+   → Min/max values per block per column recorded
+   → WHERE price &gt; 100 → skip blocks where max(price) &lt; 100
+   → THIS is why Redshift is fast for analytical scans
+
+4. COMPRESSION applied per column
+   → Each column compressed with appropriate encoding
+   → LZO, ZSTD, Delta, Bytedict, etc.
+   → price (decimal) might use Delta encoding
+   → category (low cardinality) might use Bytedict
+
+WHY THIS MATTERS:
+    → Redshift stores COLUMNS separately → fast for "scan one column across all rows"
+    → MongoDB stores DOCUMENTS together → fast for "get all fields of one document"
+    
+    → SELECT AVG(price) FROM products  → Redshift reads ONLY price column → FAST
+    → db.products.findOne({_id: x})    → MongoDB reads ONE document → FAST
+    
+    → SELECT AVG(price) FROM products  → MongoDB must read ALL documents → SLOW
+    → db.products.findOne({_id: x})    → Redshift must reconstruct full row → SLOWER</code></pre></div>
+<h3>WHY THE INTERNALS CAUSE DIFFERENT BEHAVIOR</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>SAME OPERATION — DIFFERENT PERFORMANCE:
+</span>
+┌─────────────────────────────┬────────────────┬────────────────┐
+│ OPERATION                    │ REDSHIFT        │ MONGODB         │
+├─────────────────────────────┼────────────────┼────────────────┤
+│ Get one product by ID        │ ~10-50ms        │ ~1-5ms          │
+│ (point lookup)               │ (overkill)      │ (designed for)  │
+├─────────────────────────────┼────────────────┼────────────────┤
+│ AVG(price) across 10M rows   │ ~2-5 seconds    │ ~30-60 seconds  │
+│ (full column scan)           │ (designed for)  │ (reads all docs)│
+├─────────────────────────────┼────────────────┼────────────────┤
+│ Insert 1 product             │ ~50-200ms       │ ~1-5ms          │
+│ (single write)               │ (columnar write)│ (document write)│
+├─────────────────────────────┼────────────────┼────────────────┤
+│ Insert 1M products           │ ~30s (COPY)     │ ~30s (bulk)     │
+│ (bulk load)                  │ (parallel load) │ (insertMany)    │
+├─────────────────────────────┼────────────────┼────────────────┤
+│ Add new field to one product │ Impossible      │ ~1ms            │
+│ (schema change per row)      │ (must ALTER)    │ (just update)   │
+└─────────────────────────────┴────────────────┴────────────────┘
+
+THE ROOT CAUSE:
+    Columnar (Redshift) = optimize for scanning MANY rows, FEW columns
+    Document (MongoDB)  = optimize for accessing FEW documents, ALL fields</code></pre></div>
+<hr>
+<h2>📖 REDSHIFT-TO-MONGODB TRANSLATION GLOSSARY — Project 1</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>┌──────────────────────────┬───────────────────────────────────────┐
+</span>│ REDSHIFT CONCEPT          │ MONGODB EQUIVALENT                     │
+├──────────────────────────┼───────────────────────────────────────┤
+│ CREATE DATABASE name      │ use name (implicit)                    │
+│                           │                                        │
+│ CREATE TABLE              │ db.createCollection() (explicit)       │
+│                           │ OR just insertOne() (implicit)         │
+│                           │                                        │
+│ Table                     │ Collection                             │
+│                           │                                        │
+│ Row                       │ Document                               │
+│                           │                                        │
+│ Column                    │ Field                                  │
+│                           │                                        │
+│ IDENTITY(1,1)             │ _id: ObjectId (auto-generated)         │
+│ (auto-increment)          │ (globally unique, timestamp-embedded)  │
+│                           │                                        │
+│ VARCHAR(255)              │ String (no length limit enforced)      │
+│                           │                                        │
+│ DECIMAL(10,2)             │ Double or Decimal128                   │
+│                           │                                        │
+│ INTEGER                   │ Int32 or Int64 (NumberInt / NumberLong)│
+│                           │                                        │
+│ TIMESTAMP                 │ ISODate (Date type in BSON)            │
+│                           │                                        │
+│ NOT NULL                  │ "required" in schema validation        │
+│                           │                                        │
+│ DEFAULT value             │ Set in application code or trigger     │
+│                           │                                        │
+│ Schema (DDL-enforced)     │ Schema (application-enforced or        │
+│                           │ optional $jsonSchema validation)       │
+│                           │                                        │
+│ psql / Query Editor v2    │ mongosh / Compass                      │
+│                           │                                        │
+│ JDBC / ODBC               │ pymongo / mongosh / native drivers     │
+│                           │                                        │
+│ Cluster (always running)  │ mongod process / Atlas cluster         │
+│                           │                                        │
+│ Columnar storage blocks   │ BSON documents in WiredTiger pages     │
+│                           │                                        │
+│ Zone Maps (per block)     │ _id index (auto-created)               │
+│                           │                                        │
+│ Commit log / WAL          │ Journal (WiredTiger journal)           │
+└──────────────────────────┴───────────────────────────────────────┘</code></pre></div>
+<hr>
+<h2>⚠️ COMMON PITFALLS AND FAILURE MODES</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>MISTAKES REDSHIFT DEVELOPERS MAKE IN MONGODB — PROJECT 1:
+</span>
+PITFALL 1: "Let me create all my collections first"
+    ❌ db.createCollection("products")
+       db.createCollection("orders")
+       db.createCollection("customers")
+       db.createCollection("order_items")
+       ... then insert data later
+    ✅ Just start inserting — collections appear automatically
+    WHY: Redshift trained you to build structure first
+         MongoDB is data-first, structure-second
+
+PITFALL 2: "Where's my auto-increment ID?"
+    ❌ Trying to implement auto-increment sequence in MongoDB
+       (creating a counters collection, using findAndModify)
+    ✅ Use ObjectId — it's BETTER than auto-increment
+    WHY: ObjectId is globally unique (works across shards)
+         Auto-increment requires coordination (bottleneck)
+         ObjectId contains timestamp (free metadata)
+
+PITFALL 3: "I need to define column types somewhere"
+    ❌ Creating a "schema document" or config file listing types
+    ✅ Types are inferred from the data you insert
+       price: 29.99 → stored as BSON double
+       price: NumberDecimal("29.99") → stored as Decimal128
+    WHY: MongoDB is typed at the VALUE level, not COLUMN level
+         Same field can have different types in different documents
+         (though you SHOULDN'T do this — it's just possible)
+
+PITFALL 4: "I'll connect with SQL"
+    ❌ Trying to use JDBC SQL driver to talk to MongoDB
+    ✅ Use native driver: pymongo, mongosh, or MongoDB JDBC (Atlas SQL)
+    WHY: MongoDB speaks MQL (MongoDB Query Language), not SQL
+         There IS an Atlas SQL interface, but it's for BI tools
+         For application code: ALWAYS use native driver
+
+PITFALL 5: "The database disappeared!"
+    → You ran `use mydb` but inserted nothing
+    → Disconnected and reconnected
+    → `show dbs` — mydb is gone!
+    WHY: Empty databases are not persisted
+         Must have at least one document in one collection
+         Redshift: empty databases persist forever</code></pre></div>
+<hr>
+<h2>📈 SCALABILITY CONSIDERATIONS</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>AT PROJECT 1 LEVEL — what you should KNOW (not implement yet):
+</span>
+MONGODB SCALING PATH:
+    Single Server (what we just set up)
+        ↓
+    Replica Set (3+ servers for high availability) → Project 23
+        ↓
+    Sharded Cluster (data split across multiple replica sets) → Project 21
+        ↓
+    Global Cluster (shards in multiple regions) → Project 41
+
+    HORIZONTAL SCALING: add more servers
+    Each step adds servers, not bigger servers
+
+REDSHIFT SCALING PATH:
+    Single Node (dc2.large)
+        ↓
+    Multi-Node (add compute nodes)
+        ↓
+    RA3 (managed storage, decouple compute/storage)
+        ↓
+    Serverless (auto-scaling)
+        ↓
+    Cross-region Data Sharing (read replicas)
+
+    VERTICAL + HORIZONTAL: bigger nodes AND more nodes
+
+KEY DIFFERENCE:
+    MongoDB: designed for horizontal scale from day 1
+             add servers → data automatically redistributed
+    
+    Redshift: designed for vertical scale primarily
+              resize operations have downtime (classic)
+              RA3/Serverless improved this significantly</code></pre></div>
+<hr>
+<h2>📐 DATA MODELING COMPARISON</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>FOR THIS PROBLEM (product catalog):
+</span>
+REDSHIFT (Normalized Default):
+    products table     → product_id, name, price, category_id, stock_qty
+    categories table   → category_id, category_name, description
+    
+    WHY: normalized to avoid data duplication
+         JOIN categories ON products.category_id = categories.category_id
+         One source of truth for category names
+
+MONGODB (Denormalized Default):
+    products collection → each document contains ALL product info
+    {
+        name: "Wireless Mouse",
+        price: 29.99,
+        category: "Electronics",     ← category NAME stored directly
+        stock_qty: 150               ← no separate categories collection
+    }
+    
+    WHY: avoid JOIN ($lookup) overhead
+         single query returns everything needed
+         category name duplicated across products (accepted trade-off)
+
+WHEN TO BREAK CONVENTION:
+    Redshift denormalized: when JOINs are too expensive (star schema)
+    MongoDB normalized: when referenced data changes frequently
+                        (category renamed → update ONE place vs MANY)
+    
+    WE'LL EXPLORE THIS DEEPLY IN PROJECT 14</code></pre></div>
+<hr>
+<h2>🔍 INTERPRETABILITY CONSIDERATIONS</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>HOW TO "SEE" YOUR DATA:
+</span>
+REDSHIFT:
+    → Query Editor v2: visual table browser, query results as grid
+    → psql: \dt for tables, \d tablename for schema
+    → System tables: SVV_TABLE_INFO, STL_QUERY for query history
+
+MONGODB:
+    → Compass: visual document browser, schema analyzer, explain plans
+    → mongosh: show dbs, show collections, db.products.find().pretty()
+    → Atlas UI: real-time metrics, data explorer, performance advisor
+
+USEFUL mongosh COMMANDS (your new psql equivalents):
+
+    show dbs                              ← \l in psql (list databases)
+    use ecommerce                         ← \c ecommerce in psql
+    show collections                      ← \dt in psql (list tables)
+    db.products.find().pretty()           ← SELECT * FROM products (formatted)
+    db.products.countDocuments()           ← SELECT COUNT(*) FROM products
+    db.products.findOne()                 ← SELECT * FROM products LIMIT 1
+    db.products.stats()                   ← SVV_TABLE_INFO equivalent
+    db.stats()                            ← Database-level statistics
+    db.products.getIndexes()              ← \di in psql (list indexes)</code></pre></div>
+<hr>
+<h2>💻 COMPLETE WORKING CODE — FULL SOLUTION</h2>
+<h3>MongoDB Shell (mongosh) — Complete</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ═══════════════════════════════════════════════════════</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// PROJECT 1 — COMPLETE MONGOSH SOLUTION</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ═══════════════════════════════════════════════════════</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── CONNECT ─────────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// If local: just run `mongosh` in terminal</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// If Atlas: mongosh "mongodb+srv://cluster.xxxxx.mongodb.net/" --username admin</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 1: CREATE DATABASE (implicit) ──────────────</span><span>
+</span>use ecommerce
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: switched to db ecommerce</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 2: VERIFY (database doesn't exist yet) ────</span><span>
+</span>show dbs
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: admin, config, local  (no ecommerce — nothing written yet)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 3: INSERT FIRST PRODUCT ────────────────────</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">insertOne</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Wireless Mouse"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">29.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">150</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token literal-property" style="color: rgb(255, 0, 0);">created_at</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">new</span><span> </span><span class="token" style="color: rgb(43, 145, 175);">Date</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: { acknowledged: true, insertedId: ObjectId("...") }</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 4: VERIFY DATABASE NOW EXISTS ──────────────</span><span>
+</span>show dbs
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: admin, config, ecommerce, local  ← NOW it exists!</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 5: VERIFY COLLECTION EXISTS ────────────────</span><span>
+</span>show collections
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: products</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 6: VIEW THE DOCUMENT ───────────────────────</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">find</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">pretty</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output:</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// {</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   _id: ObjectId('665a1b2c3d4e5f6a7b8c9d0e'),</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   name: 'Wireless Mouse',</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   price: 29.99,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   category: 'Electronics',</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   stock_qty: 150,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   created_at: ISODate('2024-05-31T14:30:22.000Z')</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// }</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 7: INSERT MORE PRODUCTS ────────────────────</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">insertMany</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Mechanical Keyboard"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">89.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">75</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">specs</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>                          </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ← NESTED OBJECT (no Redshift equivalent)</span><span>
+</span><span>            </span><span class="token literal-property" style="color: rgb(255, 0, 0);">switch_type</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Cherry MX Blue"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>            </span><span class="token literal-property" style="color: rgb(255, 0, 0);">backlit</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">true</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>            </span><span class="token literal-property" style="color: rgb(255, 0, 0);">wireless</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">false</span><span>
+</span><span>        </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">created_at</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">new</span><span> </span><span class="token" style="color: rgb(43, 145, 175);">Date</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Running Shoes"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">129.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Footwear"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">200</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">sizes</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(54, 172, 170);">7</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">8</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">9</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">10</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">11</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">12</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>    </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ← ARRAY FIELD (no Redshift equivalent)</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">created_at</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">new</span><span> </span><span class="token" style="color: rgb(43, 145, 175);">Date</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">name</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Python Crash Course"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">price</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">35.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">category</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Books"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">stock_qty</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">500</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">isbn</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"978-1593279288"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>           </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ← FIELD THAT ONLY BOOKS HAVE</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">pages</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">544</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>                        </span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ← FIELD THAT ONLY BOOKS HAVE</span><span>
+</span><span>        </span><span class="token literal-property" style="color: rgb(255, 0, 0);">created_at</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(0, 0, 255);">new</span><span> </span><span class="token" style="color: rgb(43, 145, 175);">Date</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">]</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// NOTICE:</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// → Each document has DIFFERENT fields</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// → "specs" is a nested object (only on keyboard)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// → "sizes" is an array (only on shoes)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// → "isbn" and "pages" exist only on books</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// → In Redshift: this would require NULLable columns or separate tables</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// → In MongoDB: each document carries exactly the fields it needs</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 8: COUNT DOCUMENTS ─────────────────────────</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">countDocuments</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: 4</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 9: VIEW COLLECTION STATS ──────────────────</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">stats</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Key output:</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// {</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   ns: 'ecommerce.products',</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   count: 4,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   size: 1024,                  // bytes of data</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   avgObjSize: 256,             // avg document size in bytes</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   storageSize: 36864,          // allocated storage</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   nindexes: 1,                 // just the _id index</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   totalIndexSize: 36864</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// }</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 10: VIEW INDEXES ──────────────────────────</span><span>
+</span><span>db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">getIndexes</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output:</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// [</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   {</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//     v: 2,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//     key: { _id: 1 },           // ← auto-created _id index</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//     name: '_id_'</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">//   }</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ]</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ─── STEP 11: EXAMINE ObjectId ──────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ObjectId is 12 bytes = 24 hex characters</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Structure: [4-byte timestamp][5-byte random][3-byte counter]</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">let</span><span> doc </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">findOne</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>doc</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token property-access">_id</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span class="token method property-access" style="color: rgb(57, 58, 52);">getTimestamp</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// Output: ISODate('2024-05-31T14:30:22.000Z')</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ← The _id CONTAINS the creation timestamp!</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">// ← No need for a separate created_at field (though it's good practice)</span></code></pre></div>
+<h3>Python (pymongo) — Complete</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ═══════════════════════════════════════════════════════</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># PROJECT 1 — COMPLETE PYMONGO SOLUTION</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ═══════════════════════════════════════════════════════</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── INSTALL ──────────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># pip install pymongo</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 0, 255);">from</span><span> pymongo </span><span class="token" style="color: rgb(0, 0, 255);">import</span><span> MongoClient
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">from</span><span> datetime </span><span class="token" style="color: rgb(0, 0, 255);">import</span><span> datetime
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">from</span><span> bson </span><span class="token" style="color: rgb(0, 0, 255);">import</span><span> ObjectId
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">import</span><span> pprint
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── CONNECT ──────────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Local</span><span>
+</span><span>client </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> MongoClient</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"mongodb://localhost:27017/"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># Atlas (uncomment and modify)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># client = MongoClient(</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     "mongodb+srv://admin:password@cluster0.xxxxx.mongodb.net/"</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     "?retryWrites=true&amp;w=majority"</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># )</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── VERIFY CONNECTION ───────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"Connected to MongoDB"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"Server info: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">client</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">server_info</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'version'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── "CREATE" DATABASE ───────────────────────────────</span><span>
+</span><span>db </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> client</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(163, 21, 21);">"ecommerce"</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── "CREATE" COLLECTION ─────────────────────────────</span><span>
+</span><span>products </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> db</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(163, 21, 21);">"products"</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── CLEAN SLATE (for re-running this script) ────────</span><span>
+</span><span>products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>drop</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"Collection dropped (clean slate)"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── INSERT SINGLE DOCUMENT ──────────────────────────</span><span>
+</span><span>result </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>insert_one</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Wireless Mouse"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"price"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">29.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"category"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"stock_qty"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">150</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(163, 21, 21);">"created_at"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> datetime</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>now</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nInserted single document"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Inserted ID: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">result</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">inserted_id</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Timestamp from ID: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">result</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">inserted_id</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">generation_time</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── INSERT MULTIPLE DOCUMENTS ────────────────────────</span><span>
+</span><span>many_result </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>insert_many</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Mechanical Keyboard"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"price"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">89.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"category"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Electronics"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"stock_qty"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">75</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"specs"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>            </span><span class="token" style="color: rgb(163, 21, 21);">"switch_type"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Cherry MX Blue"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>            </span><span class="token" style="color: rgb(163, 21, 21);">"backlit"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">True</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>            </span><span class="token" style="color: rgb(163, 21, 21);">"wireless"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">False</span><span>
+</span><span>        </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"created_at"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> datetime</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>now</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Running Shoes"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"price"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">129.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"category"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Footwear"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"stock_qty"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">200</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"sizes"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(54, 172, 170);">7</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">8</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">9</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">10</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">11</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">12</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"created_at"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> datetime</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>now</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">{</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Python Crash Course"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"price"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">35.99</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"category"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Books"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"stock_qty"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">500</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"isbn"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"978-1593279288"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"pages"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(54, 172, 170);">544</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span>
+</span><span>        </span><span class="token" style="color: rgb(163, 21, 21);">"created_at"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> datetime</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>now</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(57, 58, 52);">}</span><span>
+</span><span></span><span class="token" style="color: rgb(57, 58, 52);">]</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nInserted </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation builtin">len</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation">many_result</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">inserted_ids</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);"> documents"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── VERIFY DATABASE EXISTS ───────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nDatabases: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">client</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">list_database_names</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"Collections in ecommerce: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">db</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">list_collection_names</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── COUNT DOCUMENTS ─────────────────────────────────</span><span>
+</span><span>count </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>count_documents</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nTotal products: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">count</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── RETRIEVE ALL DOCUMENTS ──────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"\n--- ALL PRODUCTS ---"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">for</span><span> product </span><span class="token" style="color: rgb(0, 0, 255);">in</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>find</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span>
+</span><span>    pprint</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>pprint</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>product</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"---"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── RETRIEVE SINGLE DOCUMENT ────────────────────────</span><span>
+</span><span>one_product </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>find_one</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">{</span><span class="token" style="color: rgb(163, 21, 21);">"name"</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"Wireless Mouse"</span><span class="token" style="color: rgb(57, 58, 52);">}</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nSingle product lookup:"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>pprint</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>pprint</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span>one_product</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── COLLECTION STATISTICS ────────────────────────────</span><span>
+</span><span>stats </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> db</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>command</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"collstats"</span><span class="token" style="color: rgb(57, 58, 52);">,</span><span> </span><span class="token" style="color: rgb(163, 21, 21);">"products"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nCollection Stats:"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Document count: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">stats</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'count'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Avg document size: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">stats</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'avgObjSize'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);"> bytes"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Total data size: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">stats</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'size'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);"> bytes"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Storage size: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">stats</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'storageSize'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);"> bytes"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Number of indexes: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">stats</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'nindexes'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── LIST INDEXES ─────────────────────────────────────</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nIndexes:"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">for</span><span> index </span><span class="token" style="color: rgb(0, 0, 255);">in</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>list_indexes</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span class="token" style="color: rgb(57, 58, 52);">:</span><span>
+</span><span>    </span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">index</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'name'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">index</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">[</span><span class="token string-interpolation interpolation" style="color: rgb(163, 21, 21);">'key'</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">]</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── ObjectId EXAMINATION ─────────────────────────────</span><span>
+</span><span>sample </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> products</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>find_one</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span>oid </span><span class="token" style="color: rgb(57, 58, 52);">=</span><span> sample</span><span class="token" style="color: rgb(57, 58, 52);">[</span><span class="token" style="color: rgb(163, 21, 21);">"_id"</span><span class="token" style="color: rgb(57, 58, 52);">]</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"\nObjectId Deep Dive:"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Full ObjectId: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">oid</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  As string: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation builtin">str</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation">oid</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Creation time: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">oid</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">generation_time</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">f"  Is valid: </span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">{</span><span class="token string-interpolation interpolation">ObjectId</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">.</span><span class="token string-interpolation interpolation">is_valid</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation builtin">str</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">(</span><span class="token string-interpolation interpolation">oid</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">)</span><span class="token string-interpolation interpolation" style="color: rgb(57, 58, 52);">}</span><span class="token string-interpolation" style="color: rgb(163, 21, 21);">"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ─── CLEANUP CONNECTION ──────────────────────────────</span><span>
+</span><span>client</span><span class="token" style="color: rgb(57, 58, 52);">.</span><span>close</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 0, 255);">print</span><span class="token" style="color: rgb(57, 58, 52);">(</span><span class="token" style="color: rgb(163, 21, 21);">"\nConnection closed"</span><span class="token" style="color: rgb(57, 58, 52);">)</span><span>
+</span>
+
+<span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ═══════════════════════════════════════════════════════</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># EQUIVALENT REDSHIFT SQL (for reference)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ═══════════════════════════════════════════════════════</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Connect to Redshift</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- psql -h my-cluster.xxxxx.region.redshift.amazonaws.com \</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># --      -U admin -d dev -p 5439</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Create database</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># CREATE DATABASE ecommerce;</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># \c ecommerce</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Create schema</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># CREATE SCHEMA store;</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Create table (MUST define all columns upfront)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># CREATE TABLE store.products (</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     product_id   BIGINT IDENTITY(1,1) PRIMARY KEY,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     name         VARCHAR(255) NOT NULL,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     price        DECIMAL(10,2) NOT NULL,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     category     VARCHAR(100),</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     stock_qty    INTEGER DEFAULT 0,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     -- No way to add "specs" as nested object</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     -- No way to add "sizes" as array</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     -- No way to add "isbn" only for books</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     -- Would need: NULLable columns or separate tables</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     switch_type  VARCHAR(50),      -- NULL for non-keyboards</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     backlit      BOOLEAN,          -- NULL for non-keyboards</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     isbn         VARCHAR(20),      -- NULL for non-books</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     pages        INTEGER,          -- NULL for non-books</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     created_at   TIMESTAMP DEFAULT GETDATE()</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># )</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># DISTSTYLE KEY</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># DISTKEY(category)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># SORTKEY(created_at);</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Insert products</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># INSERT INTO store.products (name, price, category, stock_qty)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># VALUES ('Wireless Mouse', 29.99, 'Electronics', 150);</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># INSERT INTO store.products</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     (name, price, category, stock_qty, switch_type, backlit)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># VALUES</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     ('Mechanical Keyboard', 89.99, 'Electronics', 75,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#      'Cherry MX Blue', true);</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># INSERT INTO store.products</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     (name, price, category, stock_qty, isbn, pages)</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># VALUES</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#     ('Python Crash Course', 35.99, 'Books', 500,</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#      '978-1593279288', 544);</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Notice: LOTS of NULL columns per row</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- This is the "wide sparse table" anti-pattern</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- MongoDB avoids this entirely with flexible documents</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;">#</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># -- Check table</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># SELECT * FROM store.products;</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># SELECT COUNT(*) FROM store.products;</span><span>
+</span><span></span><span class="token" style="color: rgb(0, 128, 0); font-style: italic;"># ═══════════════════════════════════════════════════════</span></code></pre></div>
+<hr>
+<h2>🔗 KEY TAKEAWAY — Connecting to Next Project</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>WHAT WE LEARNED:
+</span>    → MongoDB databases and collections are created IMPLICITLY
+    → Documents are the fundamental unit (not rows)
+    → Each document can have different fields (flexible schema)
+    → _id (ObjectId) is auto-generated and globally unique
+    → WiredTiger stores complete documents (not columns)
+    → BSON is the binary format (not plain JSON)
+
+WHAT'S MISSING:
+    → We inserted only 4 documents
+    → Real systems need BULK loading (thousands, millions)
+    → How does MongoDB handle bulk inserts vs Redshift COPY?
+    → What about importing from files (CSV, JSON)?
+    → What about performance of insert operations at scale?
+
+THIS LEADS DIRECTLY TO PROJECT 2:
+    → Bulk loading 1000 customer records
+    → insertMany() vs Redshift COPY command
+    → mongoimport vs S3-based COPY
+    → Ordered vs unordered inserts
+    → Write concern impact on insert performance
+    → BSON data types deep comparison</code></pre></div>
+<hr>
+<h2>🧠 MINDSET SHIFT SUMMARY</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>┌─────────────────────────────────────────────────────────────────────┐
+</span>│                                                                      │
+│  IN REDSHIFT YOU THINK:                                              │
+│  "Define the table structure first, then data conforms to it"        │
+│                                                                      │
+│  IN MONGODB YOU THINK:                                               │
+│  "Understand the data first, then let the documents express it"      │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘</code></pre></div>
+<hr>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>PROJECT 1 COMPLETE ✅
+</span>
+Ready for Project 2: Inserting Your First Documents (Bulk Loading)?
+→ We'll compare: insertMany() vs COPY, mongoimport vs S3 loads,
+   and discover why MongoDB's write path is fundamentally different.
+</code></pre></div></div>
+</div>
+
+<!-- ========== data-index="5" ========== -->
+
+        </div>
+
+        <div class="nav-bar">
+            <a href="project-0.html" class="nav-button prev">← Previous Project</a>
+            <div class="page-info">
+                <a href="index.html" class="nav-button home">📚 Table of Contents</a><br>
+                <span style="margin-top:8px;display:block">Project 1 of 50</span>
+            </div>
+            <a href="project-2.html" class="nav-button next">Next Project →</a>
+        </div>
+    </div>
+
+    
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="progress-pct">0%</div>
+
+
+    <script>
+    const BASE_URL = "https://github.com/shakti4640/mongodb-masterclass-projects/blob/main/";
+    function openFile(path) {
+        window.open(BASE_URL + path, "_blank", "noopener,noreferrer");
+    }
+    
+    const fill = document.getElementById('progress-fill');
+    const pct  = document.getElementById('progress-pct');
+    function updateProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.body.scrollHeight - window.innerHeight;
+        const scrolled  = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        fill.style.height = scrolled + '%';
+        pct.textContent   = Math.round(scrolled) + '%';
+    }
+    window.addEventListener('scroll', updateProgress);
+    updateProgress();
+
+    document.addEventListener('keydown', function(e) {
+        if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === 'ArrowLeft') {
+            const b = document.querySelector('.nav-button.prev');
+            if (b && !b.classList.contains('disabled')) window.location.href = b.href;
+        }
+        if (e.key === 'ArrowRight') {
+            const b = document.querySelector('.nav-button.next');
+            if (b && !b.classList.contains('disabled')) window.location.href = b.href;
+        }
+    });
+    </script>
+
+</body>
+</html>

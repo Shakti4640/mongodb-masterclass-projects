@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <title>Project 1: Your First Database & Collection — MongoDB Masterclass</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.75;
+            color: #1a202c;
+            background-color: #f7fafc;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+            padding: 48px 52px;
+        }
+        
+        .content { max-width: 950px; margin: 0 auto; color: #1a202c; }
+        .content h1 {
+            color: #1a202c; margin: 32px 0 20px;
+            padding-bottom: 12px;
+            border-bottom: 4px solid #10b981;
+            font-size: 2.1em;
+            font-weight: 700;
+        }
+        .content h2 {
+            color: #1a202c; margin: 28px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #34d399;
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+        .content h3 { color: #1a202c; margin: 22px 0 12px; font-size: 1.3em; font-weight: 600; }
+        .content h4 { color: #2d3748; margin: 18px 0 10px; font-size: 1.1em; font-weight: 600; }
+        .content p  { margin-bottom: 16px; line-height: 1.8; color: #1a202c; }
+        .content ul, .content ol { margin: 12px 0 18px 30px; color: #1a202c; }
+        .content li { margin-bottom: 8px; line-height: 1.75; color: #1a202c; }
+        .content hr { border: none; border-top: 2px solid #e2e8f0; margin: 26px 0; }
+        .content pre {
+            background: #f7fafc !important;
+            border: 1px solid #cbd5e0 !important;
+            border-left: 4px solid #10b981 !important;
+            padding: 18px !important; overflow-x: auto; margin: 18px 0; border-radius: 6px;
+            font-family: 'Consolas','Monaco','Courier New',monospace !important;
+            font-size: 0.9em !important;
+        }
+        .content pre:not([style*="color"]) { color: #1a202c !important; }
+        .content code {
+            font-family: 'Consolas','Monaco','Courier New',monospace !important;
+            font-size: 0.88em !important;
+        }
+        .content code:not(pre code) {
+            background: #d1fae5 !important;
+            color: #1a202c !important;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .content pre code { background: transparent !important; padding: 0; }
+        .content table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .content th {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white; padding: 12px 16px; text-align: left;
+            font-weight: 600;
+        }
+        .content td { padding: 11px 16px; border: 1px solid #e2e8f0; color: #1a202c; }
+        .content tr:nth-child(even) td { background: #ecfdf5; }
+        .content blockquote {
+            border-left: 4px solid #10b981; background: #ecfdf5;
+            padding: 14px 20px; margin: 18px 0; border-radius: 0 6px 6px 0;
+            color: #1a202c;
+        }
+        .content strong { color: #1a202c; font-weight: 600; }
+        .px-2 { padding: 0; }
+        .chat-message { background: transparent; padding: 0; margin: 0; }
+
+        /* Bottom nav bar only */
+        .nav-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 0;
+            margin-top: 50px;
+            border-top: 3px solid #34d399;
+        }
+        .nav-button {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 26px;
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white !important; text-decoration: none;
+            border-radius: 8px; font-weight: 600; font-size: 0.95em;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.35);
+        }
+        .nav-button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(16,185,129,0.5); }
+        .nav-button.disabled { background: #cbd5e1; box-shadow: none; pointer-events: none; }
+        .nav-button.home {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            box-shadow: 0 2px 8px rgba(5,150,105,0.35);
+        }
+        .nav-button.home:hover { box-shadow: 0 4px 14px rgba(5,150,105,0.5); }
+        .page-info { color: #718096; font-size: 0.9em; text-align: center; }
+
+        /* Progress bar */
+        #progress-track {
+            position: fixed; top: 20px; right: 20px;
+            width: 10px; height: 150px;
+            background: rgba(16,185,129,0.2);
+            border: 2px solid #10b981;
+            border-radius: 6px; overflow: hidden; z-index: 1000;
+        }
+        #progress-fill {
+            width: 100%;
+            background: linear-gradient(180deg, #10b981, #059669);
+            height: 0%;
+            transition: height 0.15s ease;
+        }
+        #progress-pct {
+            position: fixed; top: 0px; right: 16px;
+            color: #059669; font-size: 14px; font-weight: bold;
+            z-index: 1001;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+            line-height: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+<!-- ========== data-index="1" ========== -->
+<div class="chat-message" data-index="1">
+<div class="px-2"><h1>MongoDB — The Complete Guide (Anchored to Your Redshift Knowledge)</h1>
+<h2>Master Table of Contents &amp; Learning Roadmap</h2>
+<hr>
+<h2>🧭 FOUNDATIONAL ANCHOR — How This Guide Works</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>YOUR BRAIN RIGHT NOW:
+</span>┌──────────────────────────────────────────────────────┐
+│  You know Redshift deeply                            │
+│  ├── SQL is your language                            │
+│  ├── Tables, Rows, Columns = your world              │
+│  ├── JOINs, GROUP BY, Window Functions = your tools   │
+│  ├── Distribution Keys, Sort Keys = your tuning       │
+│  ├── Columnar storage, MPP, Zone Maps = your internals│
+│  └── OLAP warehouse thinking = your instinct          │
+└──────────────────────────────────────────────────────┘
+                        │
+                        ▼
+YOUR BRAIN AFTER THIS GUIDE:
+┌──────────────────────────────────────────────────────┐
+│  You know BOTH — and know WHEN to use WHICH           │
+│  ├── MongoDB for operational / flexible / real-time   │
+│  ├── Redshift for analytical / structured / batch     │
+│  ├── Both together for complete architectures         │
+│  └── You think in DOCUMENTS and TABLES fluently       │
+└──────────────────────────────────────────────────────┘</code></pre></div>
+<hr>
+<h2>🔑 MASTER TRANSLATION KEY (Grows With Every Project)</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>┌─────────────────────────┬──────────────────────────────┐
+</span>│      REDSHIFT            │        MONGODB                │
+├─────────────────────────┼──────────────────────────────┤
+│ Database                 │ Database                      │
+│ Table                    │ Collection                    │
+│ Row                      │ Document                      │
+│ Column                   │ Field                         │
+│ Schema (enforced)        │ Schema (flexible/optional)    │
+│ INSERT INTO              │ insertOne() / insertMany()    │
+│ SELECT                   │ find()                        │
+│ UPDATE                   │ updateOne() / updateMany()    │
+│ DELETE                   │ deleteOne() / deleteMany()    │
+│ JOIN                     │ $lookup / Embedding           │
+│ GROUP BY                 │ $group (Aggregation Pipeline) │
+│ WHERE                    │ Query Filter Document          │
+│ ORDER BY                 │ sort()                        │
+│ LIMIT                    │ limit()                       │
+│ INDEX                    │ createIndex()                 │
+│ Distribution Key         │ Shard Key                     │
+│ Sort Key                 │ Index                         │
+│ Zone Maps                │ Index Bounds                  │
+│ Slices (MPP nodes)       │ Shards (mongos/mongod)        │
+│ Leader Node              │ mongos (query router)         │
+│ Compute Node             │ Shard (mongod)                │
+│ WLM Queues               │ Read/Write Concern            │
+│ COPY command             │ mongoimport / insertMany()    │
+│ UNLOAD                   │ mongoexport / aggregation     │
+│ Spectrum                 │ Atlas Data Lake/Federation    │
+│ Materialized Views       │ On-Demand Materialized Views  │
+│ Stored Procedures (SQL)  │ Aggregation Pipeline          │
+│ Redshift Streaming       │ Change Streams                │
+│ Multi-AZ                 │ Replica Set                   │
+│ RA3 Managed Storage      │ WiredTiger Storage Engine     │
+│ Concurrency Scaling      │ Horizontal Sharding           │
+│ Query Editor v2          │ mongosh / Compass             │
+│ IAM Roles                │ SCRAM / x.509 / RBAC         │
+│ VPC                      │ VPC Peering / Private Link    │
+│ CloudWatch Metrics       │ Atlas Monitoring / Profiler   │
+│ psql / JDBC              │ mongosh / pymongo / drivers   │
+│ EXPLAIN                  │ explain()                     │
+│ VACUUM / ANALYZE         │ compact / repairDatabase      │
+│ Data Sharing             │ Atlas Data Federation         │
+│ Serverless v2            │ Atlas Serverless              │
+│ QuickSight               │ MongoDB Charts                │
+└─────────────────────────┴──────────────────────────────┘</code></pre></div>
+<hr>
+<h2>🗺️ COMPLETE PHASE &amp; PROJECT MAP</h2>
+<hr>
+<h1>═══════════════════════════════════════════════════════</h1>
+<h1>PHASE 1 — VERY EASY — Foundation Thinking</h1>
+<h1>(Projects 1–8)</h1>
+<h1>═══════════════════════════════════════════════════════</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>GOAL: Rewire your "table-row-column" brain to think "collection-document-field"
+</span>ANALOGY: You're learning to drive on the other side of the road
+         — same skill, different orientation</code></pre></div>
+<hr>
+<h2>Chapter 1 — Entering the MongoDB World</h2>
+<h3>Project 1: Your First Database &amp; Collection</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Store a list of products for an e-commerce platform
+</span>Redshift:   CREATE TABLE → define schema → INSERT INTO
+MongoDB:    Use database → insert document → schema auto-created
+Teaches:    Database/Collection creation vs CREATE TABLE
+            Why there's NO "CREATE TABLE" in MongoDB
+            Connection: mongosh vs psql/Query Editor
+Internals:  WiredTiger first look vs Columnar block storage</code></pre></div>
+<h3>Project 2: Inserting Your First Documents</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Bulk load 1000 customer records into the system
+</span>Redshift:   COPY from S3 / INSERT INTO with values
+MongoDB:    insertOne() vs insertMany() vs mongoimport
+Teaches:    Document structure (BSON) vs Row structure (columnar)
+            _id field (auto-generated) vs IDENTITY column
+            Data types: BSON types vs Redshift SQL types
+Internals:  How BSON stores data vs how columnar blocks store data
+Builds on:  Project 1 (database/collection now has data)</code></pre></div>
+<h3>Project 3: Reading Data — Your First Queries</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Find all customers from "New York" who spent &gt; $500
+</span>Redshift:   SELECT * FROM customers WHERE city='New York' AND total_spent &gt; 500
+MongoDB:    db.customers.find({ city: "New York", total_spent: { $gt: 500 } })
+Teaches:    find() = SELECT, query filter = WHERE clause
+            Projection (returning specific fields) vs SELECT col1, col2
+            Comparison operators: $gt, $lt, $eq, $ne, $in vs SQL operators
+Builds on:  Project 2 (querying the data we inserted)</code></pre></div>
+<h3>Project 4: Updating Documents vs UPDATE Statements</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    A customer changes their shipping address and loyalty tier upgrades
+</span>Redshift:   UPDATE customers SET address='...' , tier='Gold' WHERE id = 1234
+MongoDB:    updateOne() with $set, $inc, $push, $unset
+Teaches:    Atomic field-level updates vs full-row UPDATE
+            Update operators ($set, $inc, $push, $pull, $unset)
+            Why MongoDB updates are fundamentally different from SQL UPDATE
+Builds on:  Project 3 (updating the data we queried)</code></pre></div>
+<h3>Project 5: Deleting Documents vs DELETE Statements</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Remove inactive users and purge old temporary cart data
+</span>Redshift:   DELETE FROM users WHERE last_login &lt; '2023-01-01'
+MongoDB:    deleteMany({ last_login: { $lt: ISODate("2023-01-01") } })
+Teaches:    deleteOne() vs deleteMany()
+            TTL indexes (auto-expiry) — nothing equivalent in Redshift
+            drop() vs DROP TABLE / TRUNCATE
+Builds on:  Project 4 (complete CRUD cycle now finished)</code></pre></div>
+<hr>
+<h2>Chapter 2 — Thinking in Documents, Not Rows</h2>
+<h3>Project 6: Nested Documents — The First Mind Shift</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Store an order with line items, shipping address, payment info
+</span>Redshift:   3-4 normalized tables: orders, order_items, addresses, payments
+            JOIN them for every query
+MongoDB:    ONE document with nested objects and arrays
+Teaches:    Embedding vs Normalizing — THE fundamental difference
+            Nested objects (address: { street, city, zip })
+            Arrays of objects (items: [{ sku, qty, price }])
+            Why "one query, one document" is MongoDB's philosophy
+Builds on:  Projects 1-5 (now you see WHY documents ≠ rows)</code></pre></div>
+<h3>Project 7: Flexible Schema — No ALTER TABLE Ever Again</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Product catalog where electronics have specs, clothing has sizes,
+</span>            books have ISBN — all in one collection
+Redshift:   One wide table with NULLable columns OR multiple tables
+            ALTER TABLE ADD COLUMN when new product type arrives
+MongoDB:    Each document has whatever fields it needs — no schema lock
+Teaches:    Polymorphic data pattern
+            Schema flexibility vs schema rigidity
+            When flexibility is POWER vs when it's CHAOS
+            Schema validation (voluntary guardrails)
+Builds on:  Project 6 (nested documents + now varying shapes)</code></pre></div>
+<h3>Project 8: Data Types Deep Dive — BSON vs SQL Types</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Store IoT sensor data with timestamps, geo-coordinates,
+</span>            binary blobs, and decimal precision financial amounts
+Redshift:   TIMESTAMP, GEOMETRY, VARBYTE, DECIMAL(38,10)
+MongoDB:    ISODate, GeoJSON, BinData, Decimal128, ObjectId
+Teaches:    Complete BSON type system vs SQL type system
+            ObjectId anatomy (timestamp + machine + process + counter)
+            Date handling differences (critical for Redshift users)
+            Null vs missing field (MongoDB distinction Redshift doesn't have)
+Builds on:  Project 7 (now you understand WHAT goes inside documents)</code></pre></div>
+<hr>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>END OF PHASE 1 — CHECKPOINT:
+</span>✓ You can CRUD in MongoDB
+✓ You understand documents vs rows
+✓ You understand flexible schema vs fixed schema
+✓ You understand embedding vs normalizing
+✓ You know BSON types vs SQL types
+✓ You can connect via mongosh and pymongo
+
+MINDSET SHIFT:
+  Redshift: "Design the schema first, then fit data into it"
+  MongoDB:  "Understand the access patterns first, then design documents around them"</code></pre></div>
+<hr>
+<h1>═══════════════════════════════════════════════════════</h1>
+<h1>PHASE 2 — EASY — Core Patterns</h1>
+<h1>(Projects 9–15)</h1>
+<h1>═══════════════════════════════════════════════════════</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>GOAL: Master the tools that replace your SQL power tools
+</span>ANALOGY: You knew power tools for woodworking (SQL)
+         — now learning equivalent power tools for metalworking (MongoDB)</code></pre></div>
+<hr>
+<h2>Chapter 3 — Indexing — Sort Keys Reimagined</h2>
+<h3>Project 9: Single Field Indexes — Your First Sort Key Equivalent</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Customer lookup by email is slow on 10M documents
+</span>Redshift:   Define email as sort key → zone maps skip blocks
+MongoDB:    createIndex({ email: 1 }) → B-tree enables direct lookup
+Teaches:    Index creation, types, direction (1 ascending, -1 descending)
+            B-tree index vs Zone Maps — fundamentally different mechanisms
+            explain() to verify index usage vs Redshift EXPLAIN
+Builds on:  Project 3 (now we optimize the queries we learned)</code></pre></div>
+<h3>Project 10: Compound Indexes — Multi-Column Sort Keys</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Query orders by customer_id + order_date range efficiently
+</span>Redshift:   COMPOUND SORTKEY(customer_id, order_date)
+MongoDB:    createIndex({ customer_id: 1, order_date: -1 })
+Teaches:    Index prefix rule (ESR: Equality → Sort → Range)
+            Why index field ORDER matters (same as sort key column order)
+            Covered queries (index-only scans) vs Redshift zone map skipping
+Builds on:  Project 9 (single → compound index progression)</code></pre></div>
+<h3>Project 11: Index Types Zoo — What Redshift Doesn't Have</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Full-text search on product descriptions + geo-queries on store locations
+</span>Redshift:   LIKE '%keyword%' (full scan) + custom UDF for geo
+MongoDB:    Text indexes + 2dsphere indexes (built-in)
+Teaches:    Unique, Text, Geospatial, Hashed, Wildcard, Partial indexes
+            Each index type = a capability Redshift requires external tools for
+            Index overhead: storage + write penalty (same concept in both)
+Builds on:  Project 10 (expanding beyond simple B-tree indexes)</code></pre></div>
+<hr>
+<h2>Chapter 4 — Aggregation Pipeline — Your New SQL Engine</h2>
+<h3>Project 12: Aggregation Pipeline Basics — GROUP BY Reimagined</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Revenue per product category per month from order data
+</span>Redshift:   SELECT category, DATE_TRUNC('month', order_date), SUM(amount)
+            GROUP BY 1, 2 ORDER BY 1, 2
+MongoDB:    aggregate([ $match → $group → $sort → $project ])
+Teaches:    Pipeline concept: data flows through stages (UNIX pipe analogy)
+            $match = WHERE, $group = GROUP BY, $sort = ORDER BY
+            $project = SELECT, $limit = LIMIT
+            Accumulators: $sum, $avg, $min, $max, $push
+Builds on:  Project 3 (basic find → now complex aggregation)</code></pre></div>
+<h3>Project 13: Advanced Aggregation — Window Functions &amp; Joins</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Rank customers by spending within each region + enrich with region data
+</span>Redshift:   RANK() OVER (PARTITION BY region ORDER BY total_spent DESC)
+            + JOIN with regions table
+MongoDB:    $setWindowFields (window functions equivalent)
+            $lookup (LEFT JOIN equivalent)
+Teaches:    $setWindowFields = window functions (added MongoDB 5.0)
+            $lookup = LEFT OUTER JOIN
+            $unwind = flattening arrays (like Redshift UNNEST or lateral flatten)
+            Pipeline within $lookup = subquery in JOIN
+Builds on:  Project 12 (simple aggregation → advanced pipeline stages)</code></pre></div>
+<h3>Project 14: Embedding vs Referencing — The JOIN Decision</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Blog platform: posts have authors and comments
+</span>            — embed comments? reference authors? both?
+Redshift:   Always normalize: posts, authors, comments = 3 tables + JOINs
+MongoDB:    Decision tree: embed vs reference based on access patterns
+Teaches:    THE most important MongoDB design decision
+            Embed when: read together, bounded growth, owned relationship
+            Reference when: unbounded growth, many-to-many, independent access
+            Hybrid patterns: partial embedding + references
+Builds on:  Project 6 (first saw embedding) + Project 13 ($lookup = JOIN)</code></pre></div>
+<hr>
+<h2>Chapter 5 — Read/Write Pattern Awareness</h2>
+<h3>Project 15: OLTP vs OLAP — Why MongoDB and Redshift Exist Differently</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    E-commerce: real-time cart operations + end-of-day analytics
+</span>Redshift:   Optimized for: scan millions of rows, aggregate, report
+            Struggles with: single-row lookup, high-concurrency writes
+MongoDB:    Optimized for: single-document read/write, flexible schema, real-time
+            Struggles with: massive analytical scans across all data
+Teaches:    Read/write pattern analysis as THE architecture decision driver
+            Latency profiles: MongoDB (ms) vs Redshift (seconds for complex queries)
+            Concurrency: MongoDB (thousands of ops/sec) vs Redshift (limited WLM slots)
+            THIS is why both exist — neither replaces the other
+Builds on:  All Phase 1 + Phase 2 projects → now you see the WHY behind everything</code></pre></div>
+<hr>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>END OF PHASE 2 — CHECKPOINT:
+</span>✓ You can create and use indexes strategically
+✓ You can build aggregation pipelines (your new SQL)
+✓ You understand embedding vs referencing deeply
+✓ You understand WHY MongoDB and Redshift serve different purposes
+✓ You can use explain() to analyze query performance
+
+MINDSET SHIFT:
+  Redshift: "Optimize for the analytical query — scan efficiency is everything"
+  MongoDB:  "Optimize for the access pattern — document design is everything"</code></pre></div>
+<hr>
+<h1>═══════════════════════════════════════════════════════</h1>
+<h1>PHASE 3 — MEDIUM — Professional Techniques</h1>
+<h1>(Projects 16–30)</h1>
+<h1>═══════════════════════════════════════════════════════</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>GOAL: Production-grade MongoDB skills
+</span>ANALOGY: You're now building real systems, not just learning syntax</code></pre></div>
+<hr>
+<h2>Chapter 6 — Schema Design Patterns (MongoDB's Secret Weapon)</h2>
+<h3>Project 16: Bucket Pattern — Time Series Grouping</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Store millions of IoT sensor readings per hour efficiently
+</span>Redshift:   One row per reading, sort key on timestamp, partition by date
+MongoDB:    Bucket pattern: one document per sensor per hour containing array of readings
+Teaches:    Bucket pattern reduces document count 60x
+            Why this matters for WiredTiger (fewer documents = less overhead)
+Builds on:  Project 8 (IoT data types) + Project 14 (embedding decisions)</code></pre></div>
+<h3>Project 17: Outlier Pattern — Handling Unbounded Arrays</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Social media: most users have &lt;100 followers, celebrities have millions
+</span>Redshift:   Separate followers table, JOIN always
+MongoDB:    Embed up to threshold, overflow into linked documents
+Teaches:    16MB document limit and how to design around it
+            hasExtras flag pattern
+Builds on:  Project 14 (embedding limits) + Project 16 (pattern thinking)</code></pre></div>
+<h3>Project 18: Polymorphic Pattern — One Collection, Many Shapes</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Insurance system: auto, home, life policies with different fields
+</span>Redshift:   Multiple tables OR one wide sparse table
+MongoDB:    Single collection, each document has policy-type-specific fields
+Teaches:    Discriminator field pattern
+            Partial indexes per document type
+            Schema validation per type using JSON Schema
+Builds on:  Project 7 (flexible schema) + Project 11 (partial indexes)</code></pre></div>
+<h3>Project 19: Subset Pattern — Reducing Working Set</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Product page shows only 10 most recent reviews but product has 50,000
+</span>Redshift:   Query with LIMIT (columnar scan still touches all rows in sort order)
+MongoDB:    Embed top-10 reviews in product document, full reviews in separate collection
+Teaches:    Working set concept in WiredTiger cache
+            Why document size directly affects RAM pressure
+            Subset = keep hot data embedded, cold data referenced
+Builds on:  Project 14 (embed vs reference gets nuanced)</code></pre></div>
+<h3>Project 20: Computed Pattern — Pre-Aggregating Results</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Dashboard shows real-time product stats: view count, avg rating, purchase count
+</span>Redshift:   Materialized view refreshed periodically
+MongoDB:    Store computed fields, update with $inc on each event
+Teaches:    Pre-computation vs query-time computation trade-off
+            $inc atomic updates for counters
+            MongoDB approach: write-time compute vs Redshift approach: read-time compute
+Builds on:  Project 4 ($inc updates) + Project 12 (aggregation)</code></pre></div>
+<hr>
+<h2>Chapter 7 — Sharding vs Distribution — Scaling Horizontally</h2>
+<h3>Project 21: Sharding Fundamentals — Distribution Keys Reimagined</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Order collection hits 2TB, single server can't handle load
+</span>Redshift:   Choose distribution key (DISTKEY) → data spread across slices
+MongoDB:    Choose shard key → data spread across shards
+Teaches:    Shard key = distribution key (same concept, different mechanics)
+            Chunks, balancer, config servers, mongos router
+            Range vs Hashed sharding vs Redshift KEY/EVEN/ALL distribution
+Builds on:  Project 15 (scaling awareness) → now implementing it</code></pre></div>
+<h3>Project 22: Choosing the Right Shard Key — The Hardest Decision</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Multi-tenant SaaS: shard by tenant_id? by date? compound key?
+</span>Redshift:   DISTKEY on tenant_id → co-locates tenant data
+MongoDB:    Shard key on { tenant_id: 1, _id: 1 } → balanced + targeted queries
+Teaches:    Cardinality, frequency, monotonicity — the three shard key factors
+            Jumbo chunks problem (low cardinality trap)
+            Scatter-gather queries (like Redshift broadcast joins)
+            WHY shard key is immutable (biggest difference from Redshift DISTKEY)
+Builds on:  Project 21 (fundamentals → now strategic decisions)</code></pre></div>
+<hr>
+<h2>Chapter 8 — Replica Sets vs Redshift High Availability</h2>
+<h3>Project 23: Replica Sets — Multi-AZ Reimagined</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Production database needs zero-downtime failover
+</span>Redshift:   Multi-AZ deployment, automatic failover, RA3 managed storage
+MongoDB:    Replica set: Primary + Secondary + Secondary (or Arbiter)
+Teaches:    Election process, oplog replication, automatic failover
+            Read preferences: primary, secondary, nearest
+            Write concern: w:1, w:"majority" — acknowledged writes
+            Redshift has NONE of this granularity
+Builds on:  Project 21 (sharding) → now replication within shards</code></pre></div>
+<h3>Project 24: Read/Write Concern — Consistency Guarantees</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Financial transaction must be durably written; analytics read can be stale
+</span>Redshift:   Always serializable isolation (no choice)
+MongoDB:    Tunable: { w: "majority", j: true } for critical writes
+            { readPreference: "secondaryPreferred" } for analytics
+Teaches:    Tunable consistency (MongoDB) vs fixed consistency (Redshift)
+            CAP theorem in practice
+            Read concern: local, majority, linearizable, snapshot
+Builds on:  Project 23 (replica set → now configuring its behavior)</code></pre></div>
+<hr>
+<h2>Chapter 9 — Change Streams vs Streaming Ingestion</h2>
+<h3>Project 25: Change Streams — Real-Time Event Streaming</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Trigger notification when order status changes to "shipped"
+</span>Redshift:   No native equivalent — need Kinesis + Lambda + polling
+MongoDB:    Change stream watches collection for insert/update/delete in real-time
+Teaches:    Change stream = database-native event source
+            Resume tokens (exactly-once processing guarantee)
+            Pipeline filtering within change stream
+            This is MongoDB's killer feature Redshift cannot match
+Builds on:  Project 23 (oplog → change streams are built ON the oplog)</code></pre></div>
+<h3>Project 26: MongoDB Triggers (Atlas) — Serverless Reactions</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    When new user signs up, auto-create welcome notification + audit log
+</span>Redshift:   No triggers — must use external orchestration (Step Functions, Lambda)
+MongoDB:    Atlas Triggers: database trigger → runs function on insert
+Teaches:    Atlas App Services / Triggers
+            Database triggers vs scheduled triggers vs auth triggers
+            Serverless functions tied to data events
+Builds on:  Project 25 (change streams → triggers are built ON change streams)</code></pre></div>
+<hr>
+<h2>Chapter 10 — Transactions — ACID in Document World</h2>
+<h3>Project 27: Single-Document Transactions (Implicit ACID)</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Transfer items between cart and wishlist atomically
+</span>Redshift:   BEGIN; UPDATE cart; UPDATE wishlist; COMMIT;
+MongoDB:    If modeled in ONE document: single update is automatically atomic
+Teaches:    Single-document atomicity = free ACID (no transaction needed)
+            THIS is why document design matters so much
+            Redshift always needs explicit transactions for multi-table ops
+Builds on:  Project 14 (embedding decisions have ACID consequences)</code></pre></div>
+<h3>Project 28: Multi-Document Transactions</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Bank transfer: debit Account A, credit Account B — must be atomic
+</span>Redshift:   Standard SQL transaction: BEGIN → UPDATE → UPDATE → COMMIT
+MongoDB:    session.startTransaction() → operations → session.commitTransaction()
+Teaches:    Multi-document ACID (added MongoDB 4.0)
+            Performance cost: transactions lock documents
+            Why MongoDB says "design to avoid needing transactions"
+            Redshift users over-use MongoDB transactions (anti-pattern)
+Builds on:  Project 27 (single → multi-document transaction progression)</code></pre></div>
+<hr>
+<h2>Chapter 11 — Search &amp; Time Series — Specialized Engines</h2>
+<h3>Project 29: Atlas Search — Full-Text Search Built In</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    E-commerce product search with fuzzy matching, facets, autocomplete
+</span>Redshift:   LIKE '%keyword%' (terrible performance) or integrate OpenSearch
+MongoDB:    Atlas Search: Lucene-based, integrated into aggregation pipeline
+Teaches:    Search indexes, analyzers, scoring
+            $search stage in aggregation pipeline
+            Faceted search, autocomplete, fuzzy matching
+            Replaces need for separate Elasticsearch/OpenSearch
+Builds on:  Project 11 (text indexes → Atlas Search is the advanced version)</code></pre></div>
+<h3>Project 30: Time Series Collections — Purpose-Built Storage</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Store and query billions of stock price ticks efficiently
+</span>Redshift:   Sort key on timestamp, possibly partition by date
+MongoDB:    Time series collection: metaField + timeField + granularity
+Teaches:    Automatic bucketing (internal bucket pattern)
+            Columnar compression on time series data (yes, MongoDB does this!)
+            Window functions on time series
+            Where Redshift still wins for historical analysis
+Builds on:  Project 16 (manual bucket pattern → now native time series)</code></pre></div>
+<hr>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>END OF PHASE 3 — CHECKPOINT:
+</span>✓ You know 5 schema design patterns
+✓ You can shard a collection and choose shard keys
+✓ You understand replica sets and tunable consistency
+✓ You can use change streams for real-time processing
+✓ You can use transactions (and know when NOT to)
+✓ You can use Atlas Search and Time Series collections
+
+MINDSET SHIFT:
+  Redshift: "Schema serves the query — normalize, then optimize scans"
+  MongoDB:  "Schema serves the application — design documents around access patterns"</code></pre></div>
+<hr>
+<h1>═══════════════════════════════════════════════════════</h1>
+<h1>PHASE 4 — HARD — Advanced Patterns</h1>
+<h1>(Projects 31–40)</h1>
+<h1>═══════════════════════════════════════════════════════</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>GOAL: Architect production systems, optimize performance, secure deployments
+</span>ANALOGY: You're now the senior engineer making architecture decisions</code></pre></div>
+<hr>
+<h2>Chapter 12 — Performance Mastery</h2>
+<h3>Project 31: Query Optimization Deep Dive — explain() Mastery</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Aggregation pipeline taking 30 seconds on 100M documents
+</span>Redshift:   EXPLAIN → check distribution, sort key usage, scan types
+MongoDB:    explain("executionStats") → check index usage, documents examined
+Teaches:    explain() output interpretation
+            IXSCAN vs COLLSCAN (like Redshift seq scan vs sort key scan)
+            totalDocsExamined vs totalKeysExamined ratio
+            Rejected plans, winning plan, query planner cache
+Builds on:  Project 9-10 (indexes) + Project 12-13 (aggregation)</code></pre></div>
+<h3>Project 32: Index Optimization Strategies</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Application has 20 indexes on one collection — writes are slow
+</span>Redshift:   No equivalent problem (indexes don't exist in same way)
+MongoDB:    Index audit: drop unused, merge overlapping, use partial/sparse
+Teaches:    $indexStats to find unused indexes
+            Index intersection vs compound index decision
+            Memory impact: indexes must fit in RAM (unlike Redshift zone maps)
+            Balancing read optimization vs write penalty
+Builds on:  Project 31 (found the problem) → now fixing index strategy</code></pre></div>
+<h3>Project 33: Working Set &amp; Memory Management</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    MongoDB server thrashing — cache eviction rate too high
+</span>Redshift:   Resize cluster / use RA3 for managed storage
+MongoDB:    WiredTiger cache tuning, working set analysis
+Teaches:    WiredTiger cache internals (50% of RAM default)
+            db.serverStatus().wiredTiger.cache analysis
+            Working set = data actively accessed (must fit in cache)
+            THIS is why subset pattern (Project 19) matters
+Builds on:  Project 19 (subset pattern) + Project 31 (performance analysis)</code></pre></div>
+<hr>
+<h2>Chapter 13 — Hybrid Architectures — MongoDB + Redshift Together</h2>
+<h3>Project 34: MongoDB as Operational Store Feeding Redshift Warehouse</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    E-commerce: MongoDB serves real-time app, Redshift runs nightly analytics
+</span>Teaches:    Architecture pattern: OLTP (MongoDB) → ETL → OLAP (Redshift)
+            Data pipeline design: Change Streams → Kafka → Redshift
+            Schema transformation: denormalized documents → normalized tables
+            THIS is the most common real-world architecture
+Builds on:  Project 15 (OLTP vs OLAP) + Project 25 (change streams)</code></pre></div>
+<h3>Project 35: Data Migration — MongoDB ↔ Redshift Pipelines</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Migrate 500GB of historical data from Redshift to MongoDB for new app
+</span>            + continuous sync of MongoDB operational data back to Redshift
+Teaches:    mongoexport/mongoimport, AWS DMS, custom ETL
+            Schema mapping: normalized → denormalized (and reverse)
+            Incremental sync strategies using change streams
+Builds on:  Project 34 (architecture) → now implementing the pipeline</code></pre></div>
+<h3>Project 36: Atlas Data Federation vs Redshift Spectrum</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Query data across MongoDB Atlas, S3 data lake, and HTTP sources
+</span>Redshift:   Spectrum: query S3 data as external tables
+MongoDB:    Atlas Data Federation: query across Atlas + S3 + HTTP
+Teaches:    Federated query comparison
+            $out to S3 (MongoDB) vs UNLOAD to S3 (Redshift)
+            When each federation approach wins
+Builds on:  Project 34-35 (data movement) → now querying across boundaries</code></pre></div>
+<hr>
+<h2>Chapter 14 — Security &amp; Governance</h2>
+<h3>Project 37: Authentication &amp; Authorization — RBAC Deep Dive</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Multi-team access: data engineers read-only, app team read-write,
+</span>            admin team full access, field-level restrictions on PII
+Redshift:   IAM roles, Redshift user/group, GRANT on tables/schemas
+MongoDB:    Built-in roles, custom roles, field-level redaction
+Teaches:    SCRAM-SHA-256, x.509, LDAP, Kerberos authentication
+            Built-in roles vs custom roles
+            Collection-level and field-level access control
+            $redact in aggregation for field-level security
+Builds on:  All previous projects → now securing everything</code></pre></div>
+<h3>Project 38: Encryption — At Rest, In Transit, Field-Level</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Healthcare data: encrypt SSN and diagnosis even from DBAs
+</span>Redshift:   KMS encryption at rest, SSL in transit, no field-level encryption
+MongoDB:    Client-Side Field Level Encryption (CSFLE) — encrypt BEFORE it hits server
+Teaches:    Encryption at rest (WiredTiger native encryption)
+            TLS in transit
+            CSFLE: deterministic vs random encryption
+            Queryable Encryption (MongoDB 7.0+) — query encrypted fields!
+Builds on:  Project 37 (access control) + now data-level protection</code></pre></div>
+<hr>
+<h2>Chapter 15 — Advanced Sharding &amp; Scaling</h2>
+<h3>Project 39: Zone Sharding — Data Locality &amp; Compliance</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    GDPR: European user data must stay in EU, US data in US
+</span>Redshift:   Separate clusters per region (no native data locality within cluster)
+MongoDB:    Zone sharding: tag shards with regions, assign key ranges to zones
+Teaches:    Zone/tag-based sharding for data sovereignty
+            Geographic data locality
+            Tiered storage: hot/warm/cold on different shard tiers
+Builds on:  Project 21-22 (sharding) → now advanced sharding topology</code></pre></div>
+<h3>Project 40: Resharding &amp; Scaling Operations</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Original shard key chosen poorly — hot shard getting 80% of traffic
+</span>Redshift:   Change distribution key with ALTER TABLE (relatively easy)
+MongoDB:    Resharding (MongoDB 5.0+): live resharding without downtime
+Teaches:    Resharding process: chunk migration, balancer behavior
+            Monitoring: sh.status(), balancer windows
+            Scaling: add shards online vs Redshift elastic resize
+Builds on:  Project 22 (shard key choice) → now dealing with wrong choices</code></pre></div>
+<hr>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>END OF PHASE 4 — CHECKPOINT:
+</span>✓ You can optimize MongoDB performance like a senior engineer
+✓ You can architect MongoDB + Redshift hybrid systems
+✓ You can build data pipelines between both systems
+✓ You can secure MongoDB deployments properly
+✓ You can manage sharding at scale
+
+MINDSET SHIFT:
+  Redshift: "One warehouse to rule all analytics"
+  MongoDB:  "Right database for the right workload — combine them"</code></pre></div>
+<hr>
+<h1>═══════════════════════════════════════════════════════</h1>
+<h1>PHASE 5 — VERY HARD — Mastery + Architecture</h1>
+<h1>(Projects 41–50)</h1>
+<h1>═══════════════════════════════════════════════════════</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>GOAL: System-level architecture decisions, global scale, real-time analytics
+</span>ANALOGY: You're now the architect designing the entire data platform</code></pre></div>
+<hr>
+<h2>Chapter 16 — Global Scale Architecture</h2>
+<h3>Project 41: Global Clusters — Multi-Region Deployments</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Global app: users in US, EU, Asia need &lt;50ms reads to local data
+</span>Redshift:   Cross-region data sharing (read-only, with latency)
+MongoDB:    Atlas Global Clusters: zone-sharded across regions, local reads
+Teaches:    Global write zones, local read replicas
+            Conflict resolution in multi-region writes
+            Atlas managed global clusters vs manual multi-region Redshift
+Builds on:  Project 39 (zone sharding) → now global scale</code></pre></div>
+<h3>Project 42: Real-Time Analytics — MongoDB Charts + Aggregation</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Live dashboard: orders per minute, revenue trends, inventory alerts
+</span>Redshift:   QuickSight + Redshift → near-real-time (minutes of latency)
+MongoDB:    Atlas Charts + Change Streams → true real-time (seconds of latency)
+Teaches:    MongoDB Charts vs QuickSight
+            Real-time aggregation on operational data
+            When this beats Redshift + QuickSight pipeline
+            When Redshift still wins (complex historical analytics)
+Builds on:  Project 25 (change streams) + Project 12-13 (aggregation)</code></pre></div>
+<hr>
+<h2>Chapter 17 — Event-Driven Architectures</h2>
+<h3>Project 43: Event Sourcing with Change Streams</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Build complete audit trail + event replay capability for financial system
+</span>Redshift:   Not designed for event sourcing (batch-oriented)
+MongoDB:    Change streams as event source + oplog as event store
+Teaches:    Event sourcing pattern in MongoDB
+            Replay from resume token
+            Projecting current state from events
+Builds on:  Project 25-26 (change streams/triggers) → now architectural pattern</code></pre></div>
+<h3>Project 44: MongoDB + Kafka Integration</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    MongoDB operational data needs to flow to Redshift, Elasticsearch,
+</span>            and ML pipelines simultaneously
+Teaches:    MongoDB Kafka Source Connector (change streams → Kafka)
+            MongoDB Kafka Sink Connector (Kafka → MongoDB)
+            Full CDC pipeline: MongoDB → Kafka → Redshift + others
+Builds on:  Project 34 (hybrid architecture) + Project 43 (event-driven)</code></pre></div>
+<hr>
+<h2>Chapter 18 — Complete System Design</h2>
+<h3>Project 45: E-Commerce Platform — Full Architecture</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Design complete data platform: catalog, cart, orders, analytics, search
+</span>Teaches:    MongoDB for: catalog (flexible), cart (real-time), user profiles
+            Redshift for: revenue analytics, cohort analysis, forecasting
+            Atlas Search for: product search
+            Architecture decision framework applied to every component
+Builds on:  ALL previous projects converge here</code></pre></div>
+<h3>Project 46: IoT Platform — Sensor Data at Scale</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    100,000 sensors, 1 reading/second each, real-time alerts + historical analysis
+</span>Teaches:    MongoDB Time Series for ingestion + real-time alerts
+            Redshift for long-term historical trend analysis
+            Data lifecycle: hot (MongoDB) → warm (S3) → cold (Glacier)
+            Atlas Data Federation for unified querying across tiers
+Builds on:  Project 16 (bucket), 30 (time series), 34 (hybrid)</code></pre></div>
+<h3>Project 47: Multi-Tenant SaaS Platform</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    500 tenants, varying data shapes, strict isolation, global deployment
+</span>Teaches:    Database-per-tenant vs collection-per-tenant vs shared collection
+            Shard key design for multi-tenancy
+            RBAC per tenant
+            Comparison: Redshift data sharing for multi-tenancy
+Builds on:  Project 22 (shard keys), 37 (RBAC), 41 (global clusters)</code></pre></div>
+<hr>
+<h2>Chapter 19 — Cost &amp; Operational Mastery</h2>
+<h3>Project 48: Cost Modeling — MongoDB Atlas vs Redshift at Scale</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Budget comparison: same workload estimated for both platforms
+</span>Teaches:    Atlas pricing: instance + storage + IOPS + data transfer + backup
+            Redshift pricing: node hours + Spectrum + data transfer
+            TCO comparison at different scales
+            Atlas Serverless vs Redshift Serverless cost models
+Builds on:  All projects → now understanding financial implications</code></pre></div>
+<h3>Project 49: Monitoring, Alerting &amp; Operational Excellence</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Production MongoDB cluster needs 99.99% uptime with proactive monitoring
+</span>Teaches:    Atlas monitoring: real-time metrics, slow query analyzer, profiler
+            Alerts: oplog lag, replication lag, cache eviction, connections
+            Comparison: CloudWatch for Redshift vs Atlas monitoring
+            Performance Advisor (automatic index suggestions)
+Builds on:  Project 31-33 (performance) → now operationalizing</code></pre></div>
+<hr>
+<h2>Chapter 20 — The Bridge Forward</h2>
+<h3>Project 50: MongoDB in Modern Data Lakehouse Architecture</h3>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Problem:    Design a complete data platform: operational + analytical + ML + streaming
+</span>Teaches:    MongoDB Atlas as operational data layer
+            → Change Streams → Kafka/Kinesis
+            → Data Lake (S3/Delta Lake/Iceberg)
+            → Redshift / Databricks / Snowflake for analytics
+            → MongoDB Atlas Data Federation for unified queries
+            → ML pipelines consuming from both
+            The future: convergence of operational and analytical
+Builds on:  ALL 49 previous projects → complete architectural mastery</code></pre></div>
+<hr>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>END OF PHASE 5 — FINAL CHECKPOINT:
+</span>✓ You can design global-scale MongoDB deployments
+✓ You can architect event-driven systems
+✓ You can design complete platforms using MongoDB + Redshift
+✓ You understand cost trade-offs at scale
+✓ You can make informed "MongoDB vs Redshift vs Both" decisions
+✓ You can integrate MongoDB into modern lakehouse architectures
+
+ULTIMATE MINDSET SHIFT:
+  Before:  "Redshift is my database. Everything goes there."
+  After:   "MongoDB and Redshift are complementary tools.
+            Operational workloads → MongoDB.
+            Analytical workloads → Redshift.
+            Most real systems need BOTH."</code></pre></div>
+<hr>
+<h1>📊 MASTER PROGRESS TRACKER</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>Phase 1 ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░  Projects 1-8    [Very Easy]
+</span>Phase 2 ░░░░██░░░░░░░░░░░░░░░░░░░░░░░░  Projects 9-15   [Easy]
+Phase 3 ░░░░░░░░██████░░░░░░░░░░░░░░░░  Projects 16-30  [Medium]
+Phase 4 ░░░░░░░░░░░░░░░░████░░░░░░░░░░  Projects 31-40  [Hard]
+Phase 5 ░░░░░░░░░░░░░░░░░░░░░░████████  Projects 41-50  [Very Hard]
+
+Total: 50 Projects | 20 Chapters | 5 Phases
+Estimated Learning Time: 80-120 hours of focused study</code></pre></div>
+<hr>
+<h1>🔗 DEPENDENCY GRAPH — How Projects Connect</h1>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>P1 (Create DB) → P2 (Insert) → P3 (Read) → P4 (Update) → P5 (Delete)
+</span>                                    │
+P6 (Nested Docs) ← ────────────────┘
+    │
+P7 (Flexible Schema) → P8 (BSON Types)
+    │                       │
+    ▼                       ▼
+P9 (Single Index) → P10 (Compound Index) → P11 (Index Types)
+    │                                           │
+    ▼                                           ▼
+P12 (Agg Basics) → P13 (Advanced Agg) ──→ P14 (Embed vs Ref)
+                                                │
+                                                ▼
+                                           P15 (OLTP vs OLAP)
+                                                │
+    ┌───────────────────────────────────────────┤
+    ▼                                           ▼
+P16 (Bucket) → P17 (Outlier) → P18 (Polymorphic) → P19 (Subset) → P20 (Computed)
+    │                                                       │
+    ▼                                                       ▼
+P21 (Shard Basics) → P22 (Shard Keys)              P27 (Single Txn) → P28 (Multi Txn)
+    │                     │
+    ▼                     ▼
+P23 (Replica Sets) → P24 (Read/Write Concern)
+    │
+    ▼
+P25 (Change Streams) → P26 (Triggers)
+    │                       │
+    ▼                       ▼
+P29 (Atlas Search)    P30 (Time Series)
+    │                       │
+    ├───────────────────────┤
+    ▼                       ▼
+P31 (explain) → P32 (Index Opt) → P33 (Memory)
+                                       │
+P34 (Hybrid Arch) → P35 (Migration) → P36 (Data Federation)
+    │
+P37 (RBAC) → P38 (Encryption)
+    │
+P39 (Zone Sharding) → P40 (Resharding)
+    │
+    ▼
+P41 (Global) → P42 (Real-Time Analytics)
+    │
+P43 (Event Sourcing) → P44 (Kafka Integration)
+    │
+P45 (E-Commerce Design) → P46 (IoT Design) → P47 (SaaS Design)
+    │
+P48 (Cost Modeling) → P49 (Monitoring) → P50 (Lakehouse Architecture)</code></pre></div>
+<hr>
+<h2>✅ READY FOR LAUNCH</h2>
+<div class="relative"><pre style="color: rgb(57, 58, 52); font-family: Consolas, &quot;Bitstream Vera Sans Mono&quot;, &quot;Courier New&quot;, Courier, monospace; direction: ltr; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; font-size: 0.9em; line-height: 1.2em; tab-size: 4; hyphens: none; padding: 1em; margin: 0.5em 0px; overflow: auto; border: 1px solid rgb(221, 221, 221); background-color: white;"><code style="white-space: pre-wrap; word-break: break-all;"><span>This is your complete roadmap.
+</span>50 projects. 20 chapters. 5 phases.
+Every concept anchored to your Redshift knowledge.
+</code></pre></div>
+</div>
+</div>
+
+
+<!-- ========== data-index="5" ========== -->
+
+        </div>
+
+        <div class="nav-bar">
+            <a href="index.html" class="nav-button prev">← 📚 Home</a>
+            <div class="page-info">
+                <a href="index.html" class="nav-button home">📚 Table of Contents</a><br>
+                <span style="margin-top:8px;display:block">Project 1 of 50</span>
+            </div>
+            <a href="project-1.html" class="nav-button next">Next Project →</a>
+        </div>
+    </div>
+
+    
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="progress-pct">0%</div>
+
+
+    <script>
+    const BASE_URL = "https://github.com/shakti4640/mongodb-masterclass-projects/blob/main/";
+    function openFile(path) {
+        window.open(BASE_URL + path, "_blank", "noopener,noreferrer");
+    }
+    
+    const fill = document.getElementById('progress-fill');
+    const pct  = document.getElementById('progress-pct');
+    function updateProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.body.scrollHeight - window.innerHeight;
+        const scrolled  = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        fill.style.height = scrolled + '%';
+        pct.textContent   = Math.round(scrolled) + '%';
+    }
+    window.addEventListener('scroll', updateProgress);
+    updateProgress();
+
+    document.addEventListener('keydown', function(e) {
+        if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === 'ArrowLeft') {
+            const b = document.querySelector('.nav-button.prev');
+            if (b && !b.classList.contains('disabled')) window.location.href = b.href;
+        }
+        if (e.key === 'ArrowRight') {
+            const b = document.querySelector('.nav-button.next');
+            if (b && !b.classList.contains('disabled')) window.location.href = b.href;
+        }
+    });
+    </script>
+
+</body>
+</html>

@@ -1,20 +1,283 @@
-<script>
-const BASE_URL = "https://github.com/shakti4640/mongodb-masterclass-projects/blob/main/";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <title>🍃 MongoDB — The Complete Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6; color: #1a202c;
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            min-height: 100vh; padding: 48px 24px;
+        }
+        .container {
+            max-width: 950px; margin: 0 auto;
+            background: white; border-radius: 14px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.25); overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white; padding: 54px 44px; text-align: center;
+        }
+        header h1 { font-size: 2.5em; margin-bottom: 14px; font-weight: 700; }
+        header p  { font-size: 1.15em; opacity: 0.95; }
+        .toc { padding: 40px 44px; }
+        
+        .phase-header {
+            background: linear-gradient(to right, #d1fae5, #a7f3d0);
+            padding: 14px 20px;
+            margin: 30px 0 12px;
+            border-left: 5px solid #10b981;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #065f46;
+        }
+        .phase-header:first-of-type { margin-top: 0; }
+        
+        .project-link {
+            display: block; padding: 16px 20px; margin-bottom: 8px;
+            background: linear-gradient(to right, #ecfdf5, #d1fae5);
+            border-left: 4px solid #34d399;
+            border-radius: 8px; text-decoration: none; color: #1a202c;
+            transition: all 0.22s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .project-link:hover {
+            transform: translateX(10px);
+            background: linear-gradient(to right, #d1fae5, #a7f3d0);
+            box-shadow: 0 4px 16px rgba(16,185,129,0.25);
+            border-left-width: 6px; border-left-color: #10b981;
+        }
+        .project-num   { font-size: 0.84em; color: #059669; font-weight: 700; display: block; margin-bottom: 4px; }
+        .project-title { font-size: 1em; font-weight: 500; color: #1a202c; }
+        .stats { text-align: center; padding: 22px; background: #ecfdf5; border-top: 2px solid #a7f3d0; color: #065f46; font-size: 0.95em; }
 
-function openFile(path) {
-    window.open(BASE_URL + path, "_blank", "noopener,noreferrer");
-}
-</script>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍃 MongoDB Masterclass</h1>
+            <p>The Complete Guide — 50 Progressive Projects</p>
+        </header>
+        <div class="toc">
+            <a href="project-0.html" class="project-link">
+                <span class="project-num">Table of Contents</span>
+                <span class="project-title">Master Table of Contents & Learning Roadmap</span>
+            </a>
+            <div class="phase-header">Phase 1: Very Easy — Foundation Thinking</div>
+            <a href="project-1.html" class="project-link">
+                <span class="project-num">PROJECT 1</span>
+                <span class="project-title">Your First Database & Collection</span>
+            </a>
+            <a href="project-2.html" class="project-link">
+                <span class="project-num">PROJECT 2</span>
+                <span class="project-title">Inserting Your First Documents — Bulk Loading</span>
+            </a>
+            <a href="project-3.html" class="project-link">
+                <span class="project-num">PROJECT 3</span>
+                <span class="project-title">Reading Data — Your First Queries</span>
+            </a>
+            <a href="project-4.html" class="project-link">
+                <span class="project-num">PROJECT 4</span>
+                <span class="project-title">Updating Documents vs UPDATE Statements</span>
+            </a>
+            <a href="project-5.html" class="project-link">
+                <span class="project-num">PROJECT 5</span>
+                <span class="project-title">Deleting Documents vs DELETE Statements</span>
+            </a>
+            <a href="project-6.html" class="project-link">
+                <span class="project-num">PROJECT 6</span>
+                <span class="project-title">Nested Documents — The First Mind Shift</span>
+            </a>
+            <a href="project-7.html" class="project-link">
+                <span class="project-num">PROJECT 7</span>
+                <span class="project-title">Flexible Schema — No ALTER TABLE Ever Again</span>
+            </a>
+            <a href="project-8.html" class="project-link">
+                <span class="project-num">PROJECT 8</span>
+                <span class="project-title">Data Types Deep Dive — BSON vs SQL Types</span>
+            </a>
+<div class="phase-header">Phase 2: Easy — Core Patterns</div>
+            <a href="project-9.html" class="project-link">
+                <span class="project-num">PROJECT 9</span>
+                <span class="project-title">Single Field Indexes — Your First Sort Key Equivalent</span>
+            </a>
+            <a href="project-10.html" class="project-link">
+                <span class="project-num">PROJECT 10</span>
+                <span class="project-title">Compound Indexes — Multi-Column Sort Keys</span>
+            </a>
+            <a href="project-11.html" class="project-link">
+                <span class="project-num">PROJECT 11</span>
+                <span class="project-title">Index Types Zoo — What Redshift Doesn't Have</span>
+            </a>
+            <a href="project-12.html" class="project-link">
+                <span class="project-num">PROJECT 12</span>
+                <span class="project-title">Aggregation Pipeline Basics — GROUP BY Reimagined</span>
+            </a>
+            <a href="project-13.html" class="project-link">
+                <span class="project-num">PROJECT 13</span>
+                <span class="project-title">Advanced Aggregation — Window Functions & $lookup (JOINs)</span>
+            </a>
+            <a href="project-14.html" class="project-link">
+                <span class="project-num">PROJECT 14</span>
+                <span class="project-title">Embedding vs Referencing — The JOIN Decision</span>
+            </a>
+            <a href="project-15.html" class="project-link">
+                <span class="project-num">PROJECT 15</span>
+                <span class="project-title">OLTP vs OLAP — Why MongoDB and Redshift Exist Differently</span>
+            </a>
+<div class="phase-header">Phase 3: Medium — Professional Techniques</div>
+            <a href="project-16.html" class="project-link">
+                <span class="project-num">PROJECT 16</span>
+                <span class="project-title">Bucket Pattern — Time Series Grouping</span>
+            </a>
+            <a href="project-17.html" class="project-link">
+                <span class="project-num">PROJECT 17</span>
+                <span class="project-title">Outlier Pattern — Handling Unbounded Arrays</span>
+            </a>
+            <a href="project-18.html" class="project-link">
+                <span class="project-num">PROJECT 18</span>
+                <span class="project-title">Polymorphic Pattern — One Collection, Many Shapes</span>
+            </a>
+            <a href="project-19.html" class="project-link">
+                <span class="project-num">PROJECT 19</span>
+                <span class="project-title">Subset Pattern — Reducing Working Set</span>
+            </a>
+            <a href="project-20.html" class="project-link">
+                <span class="project-num">PROJECT 20</span>
+                <span class="project-title">Computed Pattern — Pre-Aggregating Results</span>
+            </a>
+            <a href="project-21.html" class="project-link">
+                <span class="project-num">PROJECT 21</span>
+                <span class="project-title">Sharding Fundamentals — Distribution Keys Reimagined</span>
+            </a>
+            <a href="project-22.html" class="project-link">
+                <span class="project-num">PROJECT 22</span>
+                <span class="project-title">Choosing the Right Shard Key — The Hardest Decision</span>
+            </a>
+            <a href="project-23.html" class="project-link">
+                <span class="project-num">PROJECT 23</span>
+                <span class="project-title">Replica Sets — Multi-AZ Reimagined</span>
+            </a>
+            <a href="project-24.html" class="project-link">
+                <span class="project-num">PROJECT 24</span>
+                <span class="project-title">Read/Write Concern — Consistency Guarantees</span>
+            </a>
+            <a href="project-25.html" class="project-link">
+                <span class="project-num">PROJECT 25</span>
+                <span class="project-title">Change Streams — Real-Time Event Streaming</span>
+            </a>
+            <a href="project-26.html" class="project-link">
+                <span class="project-num">PROJECT 26</span>
+                <span class="project-title">MongoDB Triggers (Atlas) — Serverless Reactions</span>
+            </a>
+            <a href="project-27.html" class="project-link">
+                <span class="project-num">PROJECT 27</span>
+                <span class="project-title">Single-Document Transactions (Implicit ACID)</span>
+            </a>
+            <a href="project-28.html" class="project-link">
+                <span class="project-num">PROJECT 28</span>
+                <span class="project-title">Multi-Document Transactions</span>
+            </a>
+            <a href="project-29.html" class="project-link">
+                <span class="project-num">PROJECT 29</span>
+                <span class="project-title">Atlas Search — Full-Text Search Built In</span>
+            </a>
+            <a href="project-30.html" class="project-link">
+                <span class="project-num">PROJECT 30</span>
+                <span class="project-title">Time Series Collections — Purpose-Built Storage</span>
+            </a>
+<div class="phase-header">Phase 4: Hard — Advanced Patterns</div>
+            <a href="project-31.html" class="project-link">
+                <span class="project-num">PROJECT 31</span>
+                <span class="project-title">Query Optimization Deep Dive — explain() Mastery</span>
+            </a>
+            <a href="project-32.html" class="project-link">
+                <span class="project-num">PROJECT 32</span>
+                <span class="project-title">Index Optimization Strategies</span>
+            </a>
+            <a href="project-33.html" class="project-link">
+                <span class="project-num">PROJECT 33</span>
+                <span class="project-title">Working Set & Memory Management</span>
+            </a>
+            <a href="project-34.html" class="project-link">
+                <span class="project-num">PROJECT 34</span>
+                <span class="project-title">MongoDB as Operational Store Feeding Redshift Warehouse</span>
+            </a>
+            <a href="project-35.html" class="project-link">
+                <span class="project-num">PROJECT 35</span>
+                <span class="project-title">Data Migration — MongoDB ↔ Redshift Pipelines</span>
+            </a>
+            <a href="project-36.html" class="project-link">
+                <span class="project-num">PROJECT 36</span>
+                <span class="project-title">Atlas Data Federation vs Redshift Spectrum</span>
+            </a>
+            <a href="project-37.html" class="project-link">
+                <span class="project-num">PROJECT 37</span>
+                <span class="project-title">Authentication & Authorization — RBAC Deep Dive</span>
+            </a>
+            <a href="project-38.html" class="project-link">
+                <span class="project-num">PROJECT 38</span>
+                <span class="project-title">Encryption — At Rest, In Transit, Field-Level</span>
+            </a>
+            <a href="project-39.html" class="project-link">
+                <span class="project-num">PROJECT 39</span>
+                <span class="project-title">Zone Sharding — Data Locality & Compliance</span>
+            </a>
+            <a href="project-40.html" class="project-link">
+                <span class="project-num">PROJECT 40</span>
+                <span class="project-title">Resharding & Scaling Operations</span>
+            </a>
+<div class="phase-header">Phase 5: Very Hard — Mastery + Architecture</div>
+            <a href="project-41.html" class="project-link">
+                <span class="project-num">PROJECT 41</span>
+                <span class="project-title">Global Clusters — Multi-Region Deployments</span>
+            </a>
+            <a href="project-42.html" class="project-link">
+                <span class="project-num">PROJECT 42</span>
+                <span class="project-title">Real-Time Analytics — MongoDB Charts + Aggregation</span>
+            </a>
+            <a href="project-43.html" class="project-link">
+                <span class="project-num">PROJECT 43</span>
+                <span class="project-title">Event Sourcing with Change Streams</span>
+            </a>
+            <a href="project-44.html" class="project-link">
+                <span class="project-num">PROJECT 44</span>
+                <span class="project-title">MongoDB + Kafka Integration</span>
+            </a>
+            <a href="project-45.html" class="project-link">
+                <span class="project-num">PROJECT 45</span>
+                <span class="project-title">E-Commerce Platform — Full Architecture</span>
+            </a>
+            <a href="project-46.html" class="project-link">
+                <span class="project-num">PROJECT 46</span>
+                <span class="project-title">IoT Platform — Sensor Data at Scale</span>
+            </a>
+            <a href="project-47.html" class="project-link">
+                <span class="project-num">PROJECT 47</span>
+                <span class="project-title">Multi-Tenant SaaS Platform</span>
+            </a>
+            <a href="project-48.html" class="project-link">
+                <span class="project-num">PROJECT 48</span>
+                <span class="project-title">Cost Modeling — MongoDB Atlas vs Redshift at Scale</span>
+            </a>
+            <a href="project-49.html" class="project-link">
+                <span class="project-num">PROJECT 49</span>
+                <span class="project-title">Monitoring, Alerting & Operational Excellence</span>
+            </a>
+            <a href="project-50.html" class="project-link">
+                <span class="project-num">PROJECT 50</span>
+                <span class="project-title">MongoDB in Modern Data Lakehouse Architecture</span>
+            </a>
 
-<button onclick="openFile('project_1/code_1.py')">
-    💻 Open Code 1
-</button>
-
-<button onclick="openFile('project_1/code_2.py')">
-    💻 Open Code 2
-</button>
-
-
-
-
-
+        </div>
+        <div class="stats">
+            50 Projects &nbsp;|&nbsp; Complete MongoDB Learning Path
+        </div>
+    </div>
+</body>
+</html>
